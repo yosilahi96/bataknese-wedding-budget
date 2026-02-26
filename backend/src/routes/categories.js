@@ -27,6 +27,7 @@ router.post("/:projectId/events/:eventId/categories", authenticate, async (req, 
 
     const { name, plannedBudget, actualCost, notes } = req.body;
     if (!name) return res.status(400).json({ error: "Category name is required" });
+    if (name.length > 100) return res.status(400).json({ error: "Category name cannot exceed 100 characters" });
 
     const maxOrder = await prisma.budgetCategory.aggregate({
       where: { eventId: event.id },
@@ -65,6 +66,7 @@ router.put("/:projectId/events/:eventId/categories/:id", authenticate, async (re
     if (!category) return res.status(404).json({ error: "Category not found" });
 
     const { name, plannedBudget, actualCost, notes } = req.body;
+    if (name !== undefined && name.length > 100) return res.status(400).json({ error: "Category name cannot exceed 100 characters" });
 
     const updated = await prisma.budgetCategory.update({
       where: { id: req.params.id },

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
-import VendorCard from "./VendorCard";
 import VendorCompareModal from "./VendorCompareModal";
 import AlertModal from "./AlertModal";
 
@@ -18,7 +17,7 @@ function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
 }
 
-export default function VendorRecommendationPanel({ projectId, guestCount, budget, onVendorAdded }) {
+export default function VendorRecommendationPanel({ projectId, guestCount, onVendorAdded, selectedVendorIds = [] }) {
   const [recommendations, setRecommendations] = useState({});
   const [activeType, setActiveType] = useState("VENUE");
   const [loading, setLoading] = useState(true);
@@ -27,6 +26,7 @@ export default function VendorRecommendationPanel({ projectId, guestCount, budge
   const [actionLoading, setActionLoading] = useState("");
   const [compareError, setCompareError] = useState("");
   const [alertModal, setAlertModal] = useState(null);
+  const [priceSort, setPriceSort] = useState("default");
 
   useEffect(() => {
     loadRecommendations();
@@ -70,15 +70,29 @@ export default function VendorRecommendationPanel({ projectId, guestCount, budge
         vendorId: vendor.id,
         estimatedCost,
       });
+      setAlertModal({ title: "Vendor Selected", message: `"${vendor.name}" has been added to your project.`, type: "success" });
       if (onVendorAdded) onVendorAdded();
     } catch (err) {
-      setAlertModal({ title: "Error", message: err.message, type: "error" });
+      if (err.message?.toLowerCase().includes("already")) {
+        setAlertModal({ title: "Already Selected", message: `"${vendor.name}" has already been added to this project. Please choose a different vendor or remove the existing one first.`, type: "error" });
+      } else {
+        setAlertModal({ title: "Error", message: err.message, type: "error" });
+      }
     } finally {
       setActionLoading("");
     }
   }
 
   async function handleAddToBudget(vendor) {
+    if (selectedVendorIds.includes(vendor.id)) {
+      setAlertModal({
+        title: "Vendor Already Selected",
+        message: `"${vendor.name}" has already been added to your budget. Please choose a different vendor or remove the existing one first.`,
+        type: "warning",
+      });
+      return;
+    }
+
     setActionLoading("budget-" + vendor.id);
     try {
       const avg = (Number(vendor.minPriceEstimate) + Number(vendor.maxPriceEstimate)) / 2;
@@ -89,9 +103,14 @@ export default function VendorRecommendationPanel({ projectId, guestCount, budge
       await api.addProjectVendor(projectId, {
         vendorId: vendor.id,
         estimatedCost,
-      }).catch(() => {});
+      }).catch(() => null);
+
       const result = await api.addVendorToBudget(projectId, vendor.id, { estimatedCost });
-      setAlertModal({ title: "Added to Budget", message: `Added to ${result.event}: ${result.category.name} = ${formatRupiah(estimatedCost)}`, type: "success" });
+      setAlertModal({
+        title: "Added to Budget",
+        message: `Added to ${result.event}: ${result.category.name} = ${formatRupiah(estimatedCost)}`,
+        type: "success",
+      });
       if (onVendorAdded) onVendorAdded();
     } catch (err) {
       setAlertModal({ title: "Error", message: err.message, type: "error" });
@@ -100,7 +119,11 @@ export default function VendorRecommendationPanel({ projectId, guestCount, budge
     }
   }
 
-  const activeVendors = recommendations[activeType] || [];
+  const activeVendors = [...(recommendations[activeType] || [])].sort((a, b) => {
+    if (priceSort === "low") return Number(a.minPriceEstimate) - Number(b.minPriceEstimate);
+    if (priceSort === "high") return Number(b.maxPriceEstimate) - Number(a.maxPriceEstimate);
+    return 0;
+  });
 
   return (
     <div className="card" style={{ marginBottom: "1.5rem" }}>
@@ -113,16 +136,27 @@ export default function VendorRecommendationPanel({ projectId, guestCount, budge
         )}
       </div>
 
-      <div className="event-tabs" style={{ marginBottom: "1rem" }}>
-        {TYPE_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            className={`event-tab${activeType === tab.key ? " active" : ""}`}
-            onClick={() => { setActiveType(tab.key); setCompareVendors([]); setCompareError(""); }}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+        <div className="event-tabs" style={{ marginBottom: 0 }}>
+          {TYPE_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              className={`event-tab${activeType === tab.key ? " active" : ""}`}
+              onClick={() => { setActiveType(tab.key); setCompareVendors([]); setCompareError(""); }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <select
+          value={priceSort}
+          onChange={(e) => setPriceSort(e.target.value)}
+          style={{ padding: "0.35rem 0.5rem", borderRadius: "var(--radius)", border: "1px solid var(--border)", fontSize: "0.8rem" }}
+        >
+          <option value="default">Default</option>
+          <option value="low">Price: Low to High</option>
+          <option value="high">Price: High to Low</option>
+        </select>
       </div>
 
       {compareError && (
@@ -144,41 +178,73 @@ export default function VendorRecommendationPanel({ projectId, guestCount, budge
       ) : activeVendors.length === 0 ? (
         <p style={{ color: "var(--text-secondary)" }}>No vendors found for this type. {guestCount ? "" : "Set guest count for better results."}</p>
       ) : (
-        <div className="vendor-grid">
-          {activeVendors.map((vendor) => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
-              selected={compareVendors.some((v) => v.id === vendor.id)}
-              actions={
-                <>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    onClick={() => toggleCompare(vendor)}
-                    style={{ fontSize: "0.75rem" }}
-                  >
-                    {compareVendors.some((v) => v.id === vendor.id) ? "Unselect" : "Compare"}
-                  </button>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    onClick={() => handleAddToProject(vendor)}
-                    disabled={actionLoading === vendor.id}
-                    style={{ fontSize: "0.75rem" }}
-                  >
-                    {actionLoading === vendor.id ? "..." : "Select"}
-                  </button>
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => handleAddToBudget(vendor)}
-                    disabled={actionLoading === "budget-" + vendor.id}
-                    style={{ fontSize: "0.75rem" }}
-                  >
-                    {actionLoading === "budget-" + vendor.id ? "..." : "Add to Budget"}
-                  </button>
-                </>
-              }
-            />
-          ))}
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Location</th>
+                <th style={{ textAlign: "right" }}>Price Range</th>
+                <th style={{ textAlign: "center" }}>Batak</th>
+                <th style={{ width: 180 }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activeVendors.map((vendor) => {
+                const isComparing = compareVendors.some((v) => v.id === vendor.id);
+                return (
+                  <tr key={vendor.id} style={{ background: isComparing ? "#f0f9ff" : undefined }}>
+                    <td>
+                      <div style={{ fontWeight: 500 }}>{vendor.name}</div>
+                      {vendor.description && (
+                        <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: "0.15rem", maxWidth: 250, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {vendor.description}
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ fontSize: "0.85rem" }}>
+                      {vendor.location}
+                      {vendor.capacity ? <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>{vendor.capacity} pax</div> : null}
+                    </td>
+                    <td style={{ textAlign: "right", fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                      {formatRupiah(vendor.minPriceEstimate)} - {formatRupiah(vendor.maxPriceEstimate)}
+                      {vendor.type === "CATERING" && <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}> /pax</span>}
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      {vendor.isBatakSpecialist && <span className="badge badge-success" style={{ fontSize: "0.7rem" }}>Yes</span>}
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => toggleCompare(vendor)}
+                          style={{ fontSize: "0.7rem", padding: "0.25rem 0.4rem" }}
+                        >
+                          {isComparing ? "Unselect" : "Compare"}
+                        </button>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => handleAddToProject(vendor)}
+                          disabled={actionLoading === vendor.id}
+                          style={{ fontSize: "0.7rem", padding: "0.25rem 0.4rem" }}
+                        >
+                          {actionLoading === vendor.id ? "..." : "Select"}
+                        </button>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleAddToBudget(vendor)}
+                          disabled={actionLoading === "budget-" + vendor.id}
+                          style={{ fontSize: "0.7rem", padding: "0.25rem 0.4rem" }}
+                        >
+                          {actionLoading === "budget-" + vendor.id ? "..." : "Budget"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 

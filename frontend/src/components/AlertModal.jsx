@@ -1,5 +1,10 @@
 export default function AlertModal({ title, message, type, onClose }) {
-  const isError = type === "error";
+  const iconStyles = {
+    error: { background: "#ffebee", icon: "\u26A0" },
+    warning: { background: "#fff8e1", icon: "\u26A0" },
+    success: { background: "#e8f5e9", icon: "\u2714" },
+  };
+  const style = iconStyles[type] || iconStyles.success;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -10,7 +15,7 @@ export default function AlertModal({ title, message, type, onClose }) {
               width: 48,
               height: 48,
               borderRadius: "50%",
-              background: isError ? "#ffebee" : "#e8f5e9",
+              background: style.background,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -18,7 +23,7 @@ export default function AlertModal({ title, message, type, onClose }) {
               fontSize: "1.4rem",
             }}
           >
-            {isError ? "\u26A0" : "\u2714"}
+            {style.icon}
           </div>
           <h3 style={{ marginBottom: "0.5rem" }}>{title}</h3>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.5 }}>{message}</p>

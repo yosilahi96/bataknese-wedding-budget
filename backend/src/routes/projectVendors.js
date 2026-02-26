@@ -5,15 +5,15 @@ const { authenticate } = require("../middleware/auth");
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Maps vendor type to budget category name + event type
+// Maps vendor type to budget category name
 const VENDOR_TYPE_CATEGORY_MAP = {
-  VENUE: { categoryName: "Gedung (Venue)", eventType: "PESTA_ADAT" },
-  CATERING: { categoryName: "Catering", eventType: "PESTA_ADAT" },
-  ATTIRE: { categoryName: "Ulos (Traditional Cloth)", eventType: "PESTA_ADAT" },
-  GONDANG: { categoryName: "Gondang (Traditional Music)", eventType: "PESTA_ADAT" },
-  WO: { categoryName: "Wedding Organizer", eventType: "PESTA_ADAT" },
-  DOCUMENTATION: { categoryName: "Dokumentasi (Photo & Video)", eventType: "PESTA_ADAT" },
-  CHURCH: { categoryName: "Pasu-pasu church", eventType: "THREE_M" },
+  VENUE: { categoryName: "Gedung (Venue)" },
+  CATERING: { categoryName: "Catering" },
+  ATTIRE: { categoryName: "Ulos (Traditional Cloth)" },
+  GONDANG: { categoryName: "Gondang (Traditional Music)" },
+  WO: { categoryName: "Wedding Organizer" },
+  DOCUMENTATION: { categoryName: "Dokumentasi (Photo & Video)" },
+  CHURCH: { categoryName: "Church" },
 };
 
 async function getOwnedProject(userId, projectId) {
@@ -112,8 +112,8 @@ router.post("/:projectId/vendors/:vendorId/add-to-budget", authenticate, async (
     const mapping = VENDOR_TYPE_CATEGORY_MAP[vendor.type];
     if (!mapping) return res.status(400).json({ error: "No category mapping for this vendor type" });
 
-    const targetEvent = project.events.find((e) => e.type === mapping.eventType);
-    if (!targetEvent) return res.status(404).json({ error: "Target event not found in project" });
+    const targetEvent = project.events[0];
+    if (!targetEvent) return res.status(400).json({ error: "No event found in this project" });
 
     const { estimatedCost } = req.body;
     const cost = estimatedCost || Number(vendor.minPriceEstimate);

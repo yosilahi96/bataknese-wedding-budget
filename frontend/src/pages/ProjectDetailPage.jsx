@@ -58,7 +58,6 @@ export default function ProjectDetailPage() {
 
   const events = project.events || [];
   const allCategories = events.flatMap((e) => e.categories || []);
-  const totalPlanned = allCategories.reduce((s, c) => s + Number(c.plannedBudget), 0);
   const totalActual = allCategories.reduce((s, c) => s + Number(c.actualCost), 0);
   const remaining = Number(project.totalBudget) - totalActual;
   const pctUsed = Number(project.totalBudget) > 0 ? (totalActual / Number(project.totalBudget)) * 100 : 0;
@@ -174,24 +173,6 @@ export default function ProjectDetailPage() {
     }
   }
 
-  async function handleSelectVendor(vendorId, estimatedCost) {
-    try {
-      await api.addProjectVendor(id, { vendorId, estimatedCost });
-      loadProject();
-    } catch (err) {
-      console.error("Failed to add vendor:", err);
-    }
-  }
-
-  async function handleAddVendorToBudget(vendorId) {
-    try {
-      await api.addVendorToBudget(id, vendorId);
-      loadProject();
-    } catch (err) {
-      console.error("Failed to add vendor to budget:", err);
-    }
-  }
-
   return (
     <div>
       {/* Header */}
@@ -281,10 +262,10 @@ export default function ProjectDetailPage() {
         isFinalized={project.isFinalized}
       />
 
-      {/* Event Comparison Chart */}
-      {events.length > 0 && (
+      {/* Event Comparison Chart — only when multiple events */}
+      {events.length > 1 && (
         <div className="card" style={{ marginBottom: "1.5rem", padding: "1rem" }}>
-          <h3 style={{ fontSize: "1rem", marginBottom: "1rem" }}>Pesta Adat vs 3M Spending</h3>
+          <h3 style={{ fontSize: "1rem", marginBottom: "1rem" }}>Event Spending Comparison</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={eventComparisonData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -303,23 +284,25 @@ export default function ProjectDetailPage() {
         <VendorRecommendationPanel
           projectId={id}
           guestCount={project.guestCount}
-          budget={Number(project.totalBudget)}
           onVendorAdded={loadProject}
+          selectedVendorIds={(project.vendors || []).map((v) => v.vendorId)}
         />
       )}
 
-      {/* Event Tabs */}
-      <div className="event-tabs">
-        {events.map((evt) => (
-          <button
-            key={evt.id}
-            className={`event-tab ${activeEventTab === evt.id ? "active" : ""}`}
-            onClick={() => setActiveEventTab(evt.id)}
-          >
-            {evt.name}
-          </button>
-        ))}
-      </div>
+      {/* Event Tabs — only show when multiple events */}
+      {events.length > 1 && (
+        <div className="event-tabs">
+          {events.map((evt) => (
+            <button
+              key={evt.id}
+              className={`event-tab ${activeEventTab === evt.id ? "active" : ""}`}
+              onClick={() => setActiveEventTab(evt.id)}
+            >
+              {evt.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Active Event Category Chart */}
       {activeCategories.length > 0 && (
@@ -530,7 +513,12 @@ function CategoryModal({ title, initial, onClose, onSave }) {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Category Name</label>
-            <input type="text" value={form.name} onChange={(e) => update("name", e.target.value)} required placeholder="e.g. Catering, Dekorasi" />
+            <input type="text" value={form.name} onChange={(e) => update("name", e.target.value)} required maxLength={100} placeholder="e.g. Catering, Dekorasi" />
+            {form.name.length >= 80 && (
+              <span style={{ fontSize: "0.75rem", color: form.name.length >= 100 ? "var(--danger)" : "var(--text-secondary)", marginTop: "0.25rem", display: "block" }}>
+                {form.name.length}/100 characters
+              </span>
+            )}
           </div>
           <div className="grid-2">
             <div className="form-group">

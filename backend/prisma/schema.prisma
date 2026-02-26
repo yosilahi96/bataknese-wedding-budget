@@ -46,6 +46,7 @@ model WeddingProject {
   weddingDate    DateTime @map("wedding_date")
   totalBudget    Decimal  @map("total_budget") @db.Decimal(15, 2)
   guestCount     Int?     @map("guest_count")
+  eventType      EventType @map("event_type")
   isFinalized    Boolean  @default(false) @map("is_finalized")
   finalizedAt    DateTime? @map("finalized_at")
   createdAt      DateTime @default(now()) @map("created_at")

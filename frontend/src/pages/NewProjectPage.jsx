@@ -26,6 +26,7 @@ export default function NewProjectPage() {
     weddingDate: "",
     totalBudget: "",
     guestCount: "",
+    eventType: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -108,6 +109,20 @@ export default function NewProjectPage() {
               <input type="number" value={form.guestCount} onChange={(e) => update("guestCount", e.target.value)} placeholder="e.g. 500" min="1" />
             </div>
             <div />
+          </div>
+
+          <div className="form-group">
+            <label>Event Type</label>
+            <div style={{ display: "flex", gap: "1rem", marginTop: "0.3rem" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
+                <input type="radio" name="eventType" value="PESTA_ADAT" checked={form.eventType === "PESTA_ADAT"} onChange={(e) => update("eventType", e.target.value)} required />
+                Pesta Adat
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
+                <input type="radio" name="eventType" value="THREE_M" checked={form.eventType === "THREE_M"} onChange={(e) => update("eventType", e.target.value)} required />
+                3M Ceremony
+              </label>
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>

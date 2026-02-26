@@ -79,11 +79,19 @@ router.get("/:id", authenticate, async (req, res) => {
 // POST /api/projects — create a new project with default events and categories
 router.post("/", authenticate, async (req, res) => {
   try {
-    const { groomName, brideName, groomDomicile, brideDomicile, weddingDate, totalBudget, guestCount } = req.body;
+    const { groomName, brideName, groomDomicile, brideDomicile, weddingDate, totalBudget, guestCount, eventType } = req.body;
 
     if (!groomName || !brideName || !groomDomicile || !brideDomicile || !weddingDate || totalBudget == null) {
       return res.status(400).json({ error: "All fields are required" });
     }
+
+    if (!eventType || !["PESTA_ADAT", "THREE_M"].includes(eventType)) {
+      return res.status(400).json({ error: "eventType must be PESTA_ADAT or THREE_M" });
+    }
+
+    const eventConfig = eventType === "PESTA_ADAT"
+      ? { name: "Pesta Adat", type: "PESTA_ADAT", categories: { create: mapCategories(PESTA_ADAT_CATEGORIES) } }
+      : { name: "3M Ceremony", type: "THREE_M", categories: { create: mapCategories(THREE_M_CATEGORIES) } };
 
     const project = await prisma.weddingProject.create({
       data: {
@@ -94,20 +102,10 @@ router.post("/", authenticate, async (req, res) => {
         weddingDate: new Date(weddingDate),
         totalBudget,
         guestCount: guestCount || null,
+        eventType,
         userId: req.userId,
         events: {
-          create: [
-            {
-              name: "Pesta Adat",
-              type: "PESTA_ADAT",
-              categories: { create: mapCategories(PESTA_ADAT_CATEGORIES) },
-            },
-            {
-              name: "3M Ceremony",
-              type: "THREE_M",
-              categories: { create: mapCategories(THREE_M_CATEGORIES) },
-            },
-          ],
+          create: [eventConfig],
         },
       },
       include: PROJECT_INCLUDE,

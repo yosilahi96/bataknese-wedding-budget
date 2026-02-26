@@ -59,7 +59,6 @@ router.get("/recommend/:projectId", authenticate, async (req, res) => {
           { isBatakSpecialist: "desc" },
           { minPriceEstimate: "asc" },
         ],
-        take: 5,
       });
 
       recommendations[type] = vendors;
