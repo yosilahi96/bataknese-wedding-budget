@@ -155,7 +155,7 @@ export default function LoginPage() {
 
         {/* Invite-only note */}
         <p className="login-invite-note">
-          Access provided by your Wedding Organizer
+          Access provided by Admin
         </p>
 
         {/* Divider */}
