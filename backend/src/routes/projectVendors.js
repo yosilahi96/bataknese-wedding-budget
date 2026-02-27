@@ -88,8 +88,33 @@ router.delete("/:projectId/vendors/:vendorId", authenticate, async (req, res) =>
     });
     if (!projectVendor) return res.status(404).json({ error: "Vendor not found in project" });
 
+    // Look up the vendor to find its type → category mapping
+    const vendor = await prisma.vendor.findUnique({ where: { id: req.params.vendorId } });
+    const mapping = vendor ? VENDOR_TYPE_CATEGORY_MAP[vendor.type] : null;
+
+    // Remove the project vendor
     await prisma.projectVendor.delete({ where: { id: projectVendor.id } });
-    res.json({ message: "Vendor removed from project" });
+
+    // Reset the corresponding budget category (set plannedBudget to 0 and clear vendor notes)
+    let updatedCategory = null;
+    if (mapping) {
+      const projectWithEvents = await prisma.weddingProject.findFirst({
+        where: { id: project.id },
+        include: { events: { include: { categories: true } } },
+      });
+      const targetEvent = projectWithEvents?.events[0];
+      if (targetEvent) {
+        const category = targetEvent.categories.find((c) => c.name === mapping.categoryName);
+        if (category) {
+          updatedCategory = await prisma.budgetCategory.update({
+            where: { id: category.id },
+            data: { plannedBudget: 0, notes: null },
+          });
+        }
+      }
+    }
+
+    res.json({ message: "Vendor removed from project", updatedCategory });
   } catch (err) {
     console.error("Remove project vendor error:", err);
     res.status(500).json({ error: "Failed to remove vendor from project" });

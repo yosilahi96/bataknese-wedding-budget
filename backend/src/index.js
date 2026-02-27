@@ -9,6 +9,7 @@ const categoryRoutes = require("./routes/categories");
 const exportRoutes = require("./routes/export");
 const vendorRoutes = require("./routes/vendors");
 const adminRoutes = require("./routes/admin");
+const masterCategoryRoutes = require("./routes/masterCategories");
 const projectVendorRoutes = require("./routes/projectVendors");
 
 const app = express();
@@ -27,6 +28,7 @@ app.use("/api/projects", categoryRoutes);
 app.use("/api/projects", exportRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/master-categories", masterCategoryRoutes);
 app.use("/api/projects", projectVendorRoutes);
 
 // Serve frontend static files in production

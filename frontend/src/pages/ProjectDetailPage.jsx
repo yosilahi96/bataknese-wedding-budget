@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { api } from "../api/client";
@@ -33,6 +33,7 @@ export default function ProjectDetailPage() {
   const [exporting, setExporting] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
   const [alertModal, setAlertModal] = useState(null);
+  const [showMobileDrawer, setShowMobileDrawer] = useState(false);
 
   const loadProject = useCallback(() => {
     api
@@ -254,14 +255,6 @@ export default function ProjectDetailPage() {
         })}
       </div>
 
-      {/* Selected Vendors Summary */}
-      <SelectedVendorsSummary
-        projectVendors={project.vendors || []}
-        totalBudget={project.totalBudget}
-        onRemove={handleRemoveVendor}
-        isFinalized={project.isFinalized}
-      />
-
       {/* Event Comparison Chart — only when multiple events */}
       {events.length > 1 && (
         <div className="card" style={{ marginBottom: "1.5rem", padding: "1rem" }}>
@@ -271,7 +264,7 @@ export default function ProjectDetailPage() {
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
               <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v) => formatRupiah(v)} />
-              <Legend />
+              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 10 }} />
               <Bar dataKey="Planned" fill="#81c784" radius={[4, 4, 0, 0]} />
               <Bar dataKey="Actual" fill="#2e7d32" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -279,13 +272,33 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      {/* Vendor Recommendations */}
+      {/* Vendor Section - 2-column layout */}
       {!project.isFinalized && (
-        <VendorRecommendationPanel
-          projectId={id}
-          guestCount={project.guestCount}
-          onVendorAdded={loadProject}
-          selectedVendorIds={(project.vendors || []).map((v) => v.vendorId)}
+        <div className="vendor-layout" style={{ marginBottom: "1.5rem" }}>
+          <VendorRecommendationPanel
+            projectId={id}
+            guestCount={project.guestCount}
+            onVendorAdded={loadProject}
+            selectedVendorIds={(project.vendors || []).map((v) => v.vendorId)}
+          />
+          <div className="vendor-sidebar">
+            <SelectedVendorsSummary
+              projectVendors={project.vendors || []}
+              totalBudget={project.totalBudget}
+              onRemove={handleRemoveVendor}
+              isFinalized={project.isFinalized}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Finalized: show selected vendors inline */}
+      {project.isFinalized && (project.vendors || []).length > 0 && (
+        <SelectedVendorsSummary
+          projectVendors={project.vendors || []}
+          totalBudget={project.totalBudget}
+          onRemove={handleRemoveVendor}
+          isFinalized={project.isFinalized}
         />
       )}
 
@@ -313,7 +326,7 @@ export default function ProjectDetailPage() {
               <XAxis dataKey="name" angle={-35} textAnchor="end" interval={0} tick={{ fontSize: 11 }} />
               <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v) => formatRupiah(v)} />
-              <Legend />
+              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 10 }} />
               <Bar dataKey="Planned" fill="#81c784" radius={[4, 4, 0, 0]} />
               <Bar dataKey="Actual" fill="#2e7d32" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -409,6 +422,7 @@ export default function ProjectDetailPage() {
         <CategoryModal
           title={`Add Category - ${activeEvent.name}`}
           initial={{ name: "", plannedBudget: "", actualCost: "", notes: "" }}
+          eventType={activeEvent.type}
           onClose={() => setShowAddModal(false)}
           onSave={async (data) => {
             await api.createCategory(id, activeEvent.id, data);
@@ -429,6 +443,7 @@ export default function ProjectDetailPage() {
             actualCost: Number(editingCategory.actualCost),
             notes: editingCategory.notes || "",
           }}
+          eventType={activeEvent.type}
           onClose={() => setEditingCategory(null)}
           onSave={async (data) => {
             await api.updateCategory(id, activeEvent.id, editingCategory.id, data);
@@ -474,14 +489,114 @@ export default function ProjectDetailPage() {
           onClose={() => setAlertModal(null)}
         />
       )}
+
+      {/* Mobile floating vendor bar */}
+      {!project.isFinalized && (
+        <div className="mobile-vendor-bar">
+          <div>
+            <strong>{(project.vendors || []).length}</strong> vendors &middot; {formatRupiah(
+              (project.vendors || []).reduce((s, pv) => s + Number(pv.estimatedCost || pv.vendor?.minPriceEstimate || 0), 0)
+            )}
+          </div>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowMobileDrawer(true)}>
+            View Selected
+          </button>
+        </div>
+      )}
+
+      {/* Mobile drawer */}
+      {showMobileDrawer && (
+        <div className="vendor-drawer-overlay" onClick={() => setShowMobileDrawer(false)}>
+          <div className="vendor-drawer" onClick={(e) => e.stopPropagation()}>
+            <SelectedVendorsSummary
+              projectVendors={project.vendors || []}
+              totalBudget={project.totalBudget}
+              onRemove={handleRemoveVendor}
+              isFinalized={project.isFinalized}
+            />
+            <button className="btn btn-outline" onClick={() => setShowMobileDrawer(false)} style={{ width: "100%", marginTop: "1rem" }}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function CategoryModal({ title, initial, onClose, onSave }) {
+function CategoryCombobox({ suggestions, value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => { setInputValue(value); }, [value]);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = suggestions.filter((s) =>
+    s.toLowerCase().includes(inputValue.toLowerCase())
+  );
+
+  return (
+    <div ref={wrapperRef} style={{ position: "relative" }}>
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => { setInputValue(e.target.value); onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        required
+        maxLength={100}
+        autoComplete="off"
+      />
+      {open && filtered.length > 0 && (
+        <ul style={{
+          position: "absolute", top: "100%", left: 0, right: 0,
+          background: "var(--surface)", border: "1.5px solid var(--border)",
+          borderTop: "none", borderRadius: "0 0 var(--radius) var(--radius)",
+          maxHeight: 200, overflowY: "auto", zIndex: 10,
+          listStyle: "none", margin: 0, padding: 0,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        }}>
+          {filtered.map((name) => (
+            <li
+              key={name}
+              onClick={() => { setInputValue(name); onChange(name); setOpen(false); }}
+              style={{
+                padding: "0.5rem 0.8rem", cursor: "pointer", fontSize: "0.92rem",
+                borderBottom: "1px solid var(--border)",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f0f0")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              {name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function CategoryModal({ title, initial, eventType, onClose, onSave }) {
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+
+  useEffect(() => {
+    if (eventType) {
+      api.listMasterCategories(eventType).then((data) => {
+        setSuggestions((data.categories || []).map((c) => c.name));
+      }).catch(() => {});
+    }
+  }, [eventType]);
 
   function update(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -493,7 +608,7 @@ function CategoryModal({ title, initial, onClose, onSave }) {
     setError("");
     try {
       await onSave({
-        name: form.name,
+        name: form.name === "Others" && form.customName ? form.customName : form.name,
         plannedBudget: Number(form.plannedBudget) || 0,
         actualCost: Number(form.actualCost) || 0,
         notes: form.notes || null,
@@ -513,7 +628,27 @@ function CategoryModal({ title, initial, onClose, onSave }) {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Category Name</label>
-            <input type="text" value={form.name} onChange={(e) => update("name", e.target.value)} required maxLength={100} placeholder="e.g. Catering, Dekorasi" />
+            {eventType && suggestions.length > 0 ? (
+              <CategoryCombobox
+                suggestions={suggestions}
+                value={form.name}
+                onChange={(val) => update("name", val)}
+                placeholder="Search or type category name..."
+              />
+            ) : (
+              <input type="text" value={form.name} onChange={(e) => update("name", e.target.value)} required maxLength={100} placeholder="e.g. Catering, Dekorasi" />
+            )}
+            {form.name === "Others" && (
+              <input
+                type="text"
+                value={form.customName || ""}
+                onChange={(e) => update("customName", e.target.value)}
+                required
+                maxLength={100}
+                placeholder="Enter custom category name..."
+                style={{ marginTop: "0.5rem" }}
+              />
+            )}
             {form.name.length >= 80 && (
               <span style={{ fontSize: "0.75rem", color: form.name.length >= 100 ? "var(--danger)" : "var(--text-secondary)", marginTop: "0.25rem", display: "block" }}>
                 {form.name.length}/100 characters

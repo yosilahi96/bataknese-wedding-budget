@@ -185,6 +185,35 @@ async function main() {
     console.log("Vendors already seeded:", vendorCount, "exist");
   }
 
+  // --- Master Categories ---
+  const masterCatCount = await prisma.masterCategory.count();
+  if (masterCatCount === 0) {
+    const masterCategories = [
+      { name: "Sinamot (Bride Price)", eventType: "PESTA_ADAT", sortOrder: 1 },
+      { name: "Ulos (Traditional Cloth)", eventType: "PESTA_ADAT", sortOrder: 2 },
+      { name: "Jambar (Ceremonial Gifts)", eventType: "PESTA_ADAT", sortOrder: 3 },
+      { name: "Gondang (Traditional Music)", eventType: "PESTA_ADAT", sortOrder: 4 },
+      { name: "Gedung (Venue)", eventType: "PESTA_ADAT", sortOrder: 5 },
+      { name: "Catering", eventType: "PESTA_ADAT", sortOrder: 6 },
+      { name: "Dokumentasi (Photo & Video)", eventType: "PESTA_ADAT", sortOrder: 7 },
+      { name: "Wedding Organizer", eventType: "PESTA_ADAT", sortOrder: 8 },
+      { name: "Transport", eventType: "PESTA_ADAT", sortOrder: 9 },
+      { name: "Souvenir", eventType: "PESTA_ADAT", sortOrder: 10 },
+      { name: "Others", eventType: "PESTA_ADAT", sortOrder: 11 },
+      { name: "Marhusip venue", eventType: "THREE_M", sortOrder: 1 },
+      { name: "Martumpol church", eventType: "THREE_M", sortOrder: 2 },
+      { name: "Pasu-pasu church", eventType: "THREE_M", sortOrder: 3 },
+      { name: "Konsumsi kecil", eventType: "THREE_M", sortOrder: 4 },
+      { name: "Dokumentasi sederhana", eventType: "THREE_M", sortOrder: 5 },
+      { name: "Transport keluarga", eventType: "THREE_M", sortOrder: 6 },
+      { name: "Others", eventType: "THREE_M", sortOrder: 7 },
+    ];
+    await prisma.masterCategory.createMany({ data: masterCategories });
+    console.log("Created", masterCategories.length, "master categories");
+  } else {
+    console.log("Master categories already seeded:", masterCatCount, "exist");
+  }
+
   console.log("Seed completed successfully!");
 }
 

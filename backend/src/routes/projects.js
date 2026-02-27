@@ -5,30 +5,6 @@ const { authenticate } = require("../middleware/auth");
 const router = express.Router();
 const prisma = new PrismaClient();
 
-const PESTA_ADAT_CATEGORIES = [
-  { name: "Sinamot (Bride Price)", sortOrder: 1 },
-  { name: "Ulos (Traditional Cloth)", sortOrder: 2 },
-  { name: "Jambar (Ceremonial Gifts)", sortOrder: 3 },
-  { name: "Gondang (Traditional Music)", sortOrder: 4 },
-  { name: "Gedung (Venue)", sortOrder: 5 },
-  { name: "Catering", sortOrder: 6 },
-  { name: "Dokumentasi (Photo & Video)", sortOrder: 7 },
-  { name: "Wedding Organizer", sortOrder: 8 },
-  { name: "Transport", sortOrder: 9 },
-  { name: "Souvenir", sortOrder: 10 },
-  { name: "Others", sortOrder: 11 },
-];
-
-const THREE_M_CATEGORIES = [
-  { name: "Marhusip venue", sortOrder: 1 },
-  { name: "Martumpol church", sortOrder: 2 },
-  { name: "Pasu-pasu church", sortOrder: 3 },
-  { name: "Konsumsi kecil", sortOrder: 4 },
-  { name: "Dokumentasi sederhana", sortOrder: 5 },
-  { name: "Transport keluarga", sortOrder: 6 },
-  { name: "Others", sortOrder: 7 },
-];
-
 const PROJECT_INCLUDE = {
   events: {
     include: { categories: { orderBy: { sortOrder: "asc" } } },
@@ -89,9 +65,17 @@ router.post("/", authenticate, async (req, res) => {
       return res.status(400).json({ error: "eventType must be PESTA_ADAT or THREE_M" });
     }
 
-    const eventConfig = eventType === "PESTA_ADAT"
-      ? { name: "Pesta Adat", type: "PESTA_ADAT", categories: { create: mapCategories(PESTA_ADAT_CATEGORIES) } }
-      : { name: "3M Ceremony", type: "THREE_M", categories: { create: mapCategories(THREE_M_CATEGORIES) } };
+    const masterCategories = await prisma.masterCategory.findMany({
+      where: { eventType },
+      orderBy: { sortOrder: "asc" },
+    });
+
+    const eventName = eventType === "PESTA_ADAT" ? "Pesta Adat" : "3M Ceremony";
+    const eventConfig = {
+      name: eventName,
+      type: eventType,
+      categories: { create: mapCategories(masterCategories) },
+    };
 
     const project = await prisma.weddingProject.create({
       data: {

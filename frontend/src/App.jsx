@@ -8,6 +8,8 @@ import ProjectDetailPage from "./pages/ProjectDetailPage";
 import NewProjectPage from "./pages/NewProjectPage";
 import VendorsPage from "./pages/VendorsPage";
 import AdminVendorsPage from "./pages/AdminVendorsPage";
+import AdminMasterCategoriesPage from "./pages/AdminMasterCategoriesPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -67,6 +69,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AdminVendorsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/master-categories"
+            element={
+              <ProtectedRoute>
+                <AdminMasterCategoriesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute>
+                <AdminUsersPage />
               </ProtectedRoute>
             }
           />

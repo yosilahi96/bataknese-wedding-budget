@@ -35,6 +35,8 @@ export const api = {
   login: (data) => request("/auth/login", { method: "POST", body: JSON.stringify(data) }),
   register: (data) => request("/auth/register", { method: "POST", body: JSON.stringify(data) }),
   getMe: () => request("/auth/me"),
+  changePassword: (data) =>
+    request("/auth/change-password", { method: "PUT", body: JSON.stringify(data) }),
 
   // Projects
   listProjects: () => request("/projects"),
@@ -73,6 +75,12 @@ export const api = {
   addVendorToBudget: (projectId, vendorId, data) =>
     request(`/projects/${projectId}/vendors/${vendorId}/add-to-budget`, { method: "POST", body: JSON.stringify(data) }),
 
+  // Master Categories
+  listMasterCategories: (eventType) => {
+    const qs = eventType ? `?eventType=${eventType}` : "";
+    return request(`/master-categories${qs}`);
+  },
+
   // Admin
   adminCreateVendor: (data) =>
     request("/admin/vendors", { method: "POST", body: JSON.stringify(data) }),
@@ -80,4 +88,21 @@ export const api = {
     request(`/admin/vendors/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   adminDeleteVendor: (id) =>
     request(`/admin/vendors/${id}`, { method: "DELETE" }),
+  adminCreateMasterCategory: (data) =>
+    request("/admin/master-categories", { method: "POST", body: JSON.stringify(data) }),
+  adminUpdateMasterCategory: (id, data) =>
+    request(`/admin/master-categories/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  adminDeleteMasterCategory: (id) =>
+    request(`/admin/master-categories/${id}`, { method: "DELETE" }),
+
+  // Admin - Users
+  adminListUsers: () => request("/admin/users"),
+  adminCreateUser: (data) =>
+    request("/admin/users", { method: "POST", body: JSON.stringify(data) }),
+  adminUpdateUser: (id, data) =>
+    request(`/admin/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  adminResetPassword: (id, data) =>
+    request(`/admin/users/${id}/reset-password`, { method: "PUT", body: JSON.stringify(data) }),
+  adminDeleteUser: (id) =>
+    request(`/admin/users/${id}`, { method: "DELETE" }),
 };

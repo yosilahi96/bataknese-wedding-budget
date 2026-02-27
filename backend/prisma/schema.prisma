@@ -92,6 +92,17 @@ model BudgetCategory {
   @@map("budget_categories")
 }
 
+model MasterCategory {
+  id        String    @id @default(uuid())
+  name      String
+  eventType EventType @map("event_type")
+  sortOrder Int       @default(0) @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("master_categories")
+}
+
 model Vendor {
   id                String      @id @default(uuid())
   name              String
