@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 import { api } from "../api/client";
 import RupiahInput from "../components/RupiahInput";
 import ConfirmModal from "../components/ConfirmModal";
 import AlertModal from "../components/AlertModal";
 import SelectedVendorsSummary from "../components/SelectedVendorsSummary";
 import VendorRecommendationPanel from "../components/VendorRecommendationPanel";
+import { buildVendorTypeColorMap } from "../utils/vendorTypeColors";
 
 function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
@@ -34,6 +35,13 @@ export default function ProjectDetailPage() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [alertModal, setAlertModal] = useState(null);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
+  const [vendorTypes, setVendorTypes] = useState([]);
+
+  useEffect(() => {
+    api.listVendorTypes().then((data) => setVendorTypes(data.vendorTypes || [])).catch(console.error);
+  }, []);
+
+  const vendorTypeColorMap = buildVendorTypeColorMap(vendorTypes);
 
   const loadProject = useCallback(() => {
     api
@@ -47,15 +55,14 @@ export default function ProjectDetailPage() {
     loadProject();
   }, [loadProject]);
 
-  // Initialize active tab to first event
   useEffect(() => {
     if (project?.events?.length > 0 && !activeEventTab) {
       setActiveEventTab(project.events[0].id);
     }
   }, [project, activeEventTab]);
 
-  if (loading) return <p>Loading project...</p>;
-  if (!project) return <p>Project not found.</p>;
+  if (loading) return <div className="loading-state">Loading project...</div>;
+  if (!project) return <div className="loading-state">Project not found.</div>;
 
   const events = project.events || [];
   const allCategories = events.flatMap((e) => e.categories || []);
@@ -68,14 +75,12 @@ export default function ProjectDetailPage() {
   const activeEventPlanned = activeCategories.reduce((s, c) => s + Number(c.plannedBudget), 0);
   const activeEventActual = activeCategories.reduce((s, c) => s + Number(c.actualCost), 0);
 
-  // Event comparison chart data
   const eventComparisonData = events.map((evt) => ({
     name: evt.name,
     Planned: (evt.categories || []).reduce((s, c) => s + Number(c.plannedBudget), 0),
     Actual: (evt.categories || []).reduce((s, c) => s + Number(c.actualCost), 0),
   }));
 
-  // Per-event category chart data
   const activeCategoryChartData = activeCategories.map((c) => ({
     name: c.name.length > 15 ? c.name.slice(0, 13) + "..." : c.name,
     Planned: Number(c.plannedBudget),
@@ -175,54 +180,61 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div>
+    <div className="fade-in">
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.5rem" }}>
-        <div>
-          <button className="btn btn-outline btn-sm" onClick={() => navigate("/")} style={{ marginBottom: "0.5rem" }}>
-            &larr; Back
-          </button>
-          <h1 style={{ fontSize: "1.5rem" }}>{project.groomName} & {project.brideName}</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-            {project.groomDomicile} &bull; {new Date(project.weddingDate).toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })}
-            {project.isFinalized && <span className="badge badge-success" style={{ marginLeft: "0.5rem" }}>Finalized</span>}
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-          {!project.isFinalized && (
-            <>
-              <button className="btn btn-outline btn-sm" onClick={() => setShowEditProjectModal(true)}>Edit Info</button>
-              <button className="btn btn-primary btn-sm" onClick={handleFinalize}>Finalize</button>
-            </>
-          )}
-          <button className="btn btn-outline btn-sm" onClick={handleExportPDF} disabled={!!exporting}>
-            {exporting === "pdf" ? "..." : "PDF"}
-          </button>
-          <button className="btn btn-outline btn-sm" onClick={handleExportExcel} disabled={!!exporting}>
-            {exporting === "excel" ? "..." : "Excel"}
-          </button>
-          <button className="btn btn-danger btn-sm" onClick={handleDelete}>Delete</button>
+      <div style={{ marginBottom: "var(--sp-8)" }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate("/")} style={{ marginBottom: "var(--sp-4)", gap: "var(--sp-1)" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Back to Projects
+        </button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "var(--sp-4)" }}>
+          <div>
+            <h1 className="page-title">{project.groomName} & {project.brideName}</h1>
+            <p className="page-subtitle" style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", flexWrap: "wrap" }}>
+              {project.groomDomicile}
+              <span style={{ color: "var(--gray-300)" }}>/</span>
+              {new Date(project.weddingDate).toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })}
+              {project.isFinalized && <span className="badge badge-success" style={{ marginLeft: "var(--sp-1)" }}>Finalized</span>}
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "var(--sp-2)", flexWrap: "wrap" }}>
+            {!project.isFinalized && (
+              <>
+                <button className="btn btn-outline btn-sm" onClick={() => setShowEditProjectModal(true)}>Edit Info</button>
+                <button className="btn btn-primary btn-sm" onClick={handleFinalize}>Finalize</button>
+              </>
+            )}
+            <button className="btn btn-outline btn-sm" onClick={handleExportPDF} disabled={!!exporting}>
+              {exporting === "pdf" ? "..." : "PDF"}
+            </button>
+            <button className="btn btn-outline btn-sm" onClick={handleExportExcel} disabled={!!exporting}>
+              {exporting === "excel" ? "..." : "Excel"}
+            </button>
+            <button className="btn btn-danger btn-sm" onClick={handleDelete}>Delete</button>
+          </div>
         </div>
       </div>
 
-      {/* Combined Stats */}
+      {/* Combined Stats — Primary budget is visual anchor */}
       <div className="stats-grid">
-        <div className="stat-card">
+        <div className="stat-card stat-card-primary">
           <div className="stat-label">Total Budget</div>
-          <div className="stat-value">{formatRupiah(project.totalBudget)}</div>
+          <div className="stat-value currency-xl">{formatRupiah(project.totalBudget)}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Total Actual</div>
-          <div className="stat-value" style={{ color: pctUsed > 100 ? "var(--danger)" : undefined }}>{formatRupiah(totalActual)}</div>
+          <div className="stat-label">Total Spent</div>
+          <div className="stat-value currency" style={{ color: pctUsed > 100 ? "var(--danger)" : undefined }}>{formatRupiah(totalActual)}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Remaining</div>
-          <div className="stat-value" style={{ color: remaining < 0 ? "var(--danger)" : "var(--success)" }}>{formatRupiah(remaining)}</div>
+          <div className="stat-value currency" style={{ color: remaining < 0 ? "var(--danger)" : "var(--success)" }}>{formatRupiah(remaining)}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">% Used</div>
           <div className="stat-value">{pctUsed.toFixed(1)}%</div>
-          <div className="progress-bar" style={{ marginTop: "0.5rem" }}>
+          <div className="progress-bar" style={{ marginTop: "var(--sp-3)" }}>
             <div className="fill" style={{ width: `${Math.min(pctUsed, 100)}%`, background: pctUsed > 100 ? "var(--danger)" : pctUsed > 80 ? "var(--warning)" : "var(--primary)" }} />
           </div>
         </div>
@@ -243,11 +255,11 @@ export default function ProjectDetailPage() {
           return (
             <div className="stat-card" key={evt.id}>
               <div className="stat-label">{evt.name}</div>
-              <div className="stat-value">{formatRupiah(evtActual)}</div>
-              <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
+              <div className="stat-value currency">{formatRupiah(evtActual)}</div>
+              <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "var(--sp-1)" }}>
                 of {formatRupiah(evtPlanned)} planned ({evtPct.toFixed(1)}%)
               </div>
-              <div className="progress-bar" style={{ marginTop: "0.4rem" }}>
+              <div className="progress-bar" style={{ marginTop: "var(--sp-2)" }}>
                 <div className="fill" style={{ width: `${Math.min(evtPct, 100)}%`, background: evtPct > 100 ? "var(--danger)" : evtPct > 80 ? "var(--warning)" : "var(--primary)" }} />
               </div>
             </div>
@@ -255,26 +267,30 @@ export default function ProjectDetailPage() {
         })}
       </div>
 
-      {/* Event Comparison Chart — only when multiple events */}
+      {/* Event Comparison Chart */}
       {events.length > 1 && (
-        <div className="card" style={{ marginBottom: "1.5rem", padding: "1rem" }}>
-          <h3 style={{ fontSize: "1rem", marginBottom: "1rem" }}>Event Spending Comparison</h3>
+        <div className="card" style={{ marginBottom: "var(--sp-8)" }}>
+          <h3 className="section-title">Event Spending Comparison</h3>
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={eventComparisonData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v) => formatRupiah(v)} />
-              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 10 }} />
-              <Bar dataKey="Planned" fill="#81c784" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Actual" fill="#2e7d32" radius={[4, 4, 0, 0]} />
+            <BarChart data={eventComparisonData} margin={{ top: 8, right: 16, left: 16, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--gray-200)" }} tickLine={false} />
+              <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11, fill: "var(--text-tertiary)" }} axisLine={false} tickLine={false} />
+              <Tooltip
+                formatter={(v) => formatRupiah(v)}
+                contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
+              />
+              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 12, fontSize: "0.75rem" }} />
+              <Bar dataKey="Planned" fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Actual" fill="var(--primary)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* Vendor Section - 2-column layout */}
+      {/* Vendor Section */}
       {!project.isFinalized && (
-        <div className="vendor-layout" style={{ marginBottom: "1.5rem" }}>
+        <div className="vendor-layout" style={{ marginBottom: "var(--sp-8)" }}>
           <VendorRecommendationPanel
             projectId={id}
             guestCount={project.guestCount}
@@ -287,24 +303,27 @@ export default function ProjectDetailPage() {
               totalBudget={project.totalBudget}
               onRemove={handleRemoveVendor}
               isFinalized={project.isFinalized}
+              vendorTypes={vendorTypes}
+              colorMap={vendorTypeColorMap}
             />
           </div>
         </div>
       )}
 
-      {/* Finalized: show selected vendors inline */}
       {project.isFinalized && (project.vendors || []).length > 0 && (
         <SelectedVendorsSummary
           projectVendors={project.vendors || []}
           totalBudget={project.totalBudget}
           onRemove={handleRemoveVendor}
           isFinalized={project.isFinalized}
+          vendorTypes={vendorTypes}
+          colorMap={vendorTypeColorMap}
         />
       )}
 
-      {/* Event Tabs — only show when multiple events */}
+      {/* Event Tabs */}
       {events.length > 1 && (
-        <div className="event-tabs">
+        <div className="event-tabs" style={{ marginBottom: "var(--sp-6)" }}>
           {events.map((evt) => (
             <button
               key={evt.id}
@@ -319,27 +338,36 @@ export default function ProjectDetailPage() {
 
       {/* Active Event Category Chart */}
       {activeCategories.length > 0 && (
-        <div className="card" style={{ marginBottom: "1.5rem", marginTop: "1.5rem", padding: "1rem" }}>
-          <h3 style={{ fontSize: "1rem", marginBottom: "1rem" }}>{activeEvent?.name} - Budget vs Actual</h3>
+        <div className="card" style={{ marginBottom: "var(--sp-4)" }}>
+          <h3 className="section-title">{activeEvent?.name} - Budget vs Actual</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={activeCategoryChartData} margin={{ top: 5, right: 10, left: 10, bottom: 60 }}>
-              <XAxis dataKey="name" angle={-35} textAnchor="end" interval={0} tick={{ fontSize: 11 }} />
-              <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v) => formatRupiah(v)} />
-              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 10 }} />
-              <Bar dataKey="Planned" fill="#81c784" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Actual" fill="#2e7d32" radius={[4, 4, 0, 0]} />
+            <BarChart data={activeCategoryChartData} margin={{ top: 8, right: 16, left: 16, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" vertical={false} />
+              <XAxis dataKey="name" angle={-35} textAnchor="end" interval={0} tick={{ fontSize: 11, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--gray-200)" }} tickLine={false} />
+              <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11, fill: "var(--text-tertiary)" }} axisLine={false} tickLine={false} />
+              <Tooltip
+                formatter={(v) => formatRupiah(v)}
+                contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
+              />
+              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 12, fontSize: "0.75rem" }} />
+              <Bar dataKey="Planned" fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Actual" fill="var(--primary)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
       {/* Active Event Categories Table */}
-      <div className="card" style={{ marginTop: activeCategories.length > 0 ? 0 : "1.5rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h3 style={{ fontSize: "1rem" }}>{activeEvent?.name} - Categories</h3>
+      <div className="card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-5)" }}>
+          <h3 className="section-title" style={{ marginBottom: 0 }}>{activeEvent?.name} - Categories</h3>
           {!project.isFinalized && (
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>+ Add Category</button>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)} style={{ gap: "var(--sp-1)" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Category
+            </button>
           )}
         </div>
 
@@ -360,36 +388,38 @@ export default function ProjectDetailPage() {
                 const diff = Number(cat.plannedBudget) - Number(cat.actualCost);
                 return (
                   <tr key={cat.id}>
-                    <td style={{ fontWeight: 500 }}>{cat.name}</td>
-                    <td style={{ textAlign: "right" }}>{formatRupiah(cat.plannedBudget)}</td>
-                    <td style={{ textAlign: "right" }}>{formatRupiah(cat.actualCost)}</td>
-                    <td style={{ textAlign: "right", color: diff < 0 ? "var(--danger)" : "var(--success)" }}>
+                    <td style={{ fontWeight: 500, fontSize: "0.8125rem" }}>{cat.name}</td>
+                    <td className="currency" style={{ textAlign: "right" }}>{formatRupiah(cat.plannedBudget)}</td>
+                    <td className="currency" style={{ textAlign: "right" }}>{formatRupiah(cat.actualCost)}</td>
+                    <td className="currency" style={{ textAlign: "right", color: diff < 0 ? "var(--danger)" : "var(--success)", fontWeight: 500 }}>
                       {diff >= 0 ? "+" : ""}{formatRupiah(diff)}
                     </td>
-                    <td style={{ fontSize: "0.85rem", color: "var(--text-secondary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <td style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {cat.notes || "-"}
                     </td>
                     {!project.isFinalized && (
                       <td>
-                        <div style={{ display: "flex", gap: "0.3rem" }}>
+                        <div style={{ display: "flex", gap: "var(--sp-2)" }}>
                           <button
-                            className="btn btn-outline btn-sm"
+                            className="btn btn-ghost btn-sm"
                             onClick={() => setEditingCategory(cat)}
                             title="Edit"
-                            style={{ padding: "0.35rem 0.5rem" }}
+                            style={{ padding: "4px 6px", height: "auto" }}
                           >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
                               <path d="m15 5 4 4" />
                             </svg>
                           </button>
                           <button
-                            className="btn btn-danger btn-sm"
+                            className="btn btn-ghost btn-sm"
                             onClick={() => handleDeleteCategory(cat.id)}
                             title="Delete"
-                            style={{ padding: "0.35rem 0.5rem" }}
+                            style={{ padding: "4px 6px", height: "auto", color: "var(--text-tertiary)" }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = "var(--danger)"}
+                            onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-tertiary)"}
                           >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 6h18" />
                               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -403,11 +433,11 @@ export default function ProjectDetailPage() {
                   </tr>
                 );
               })}
-              <tr style={{ fontWeight: 700, background: "#fafafa" }}>
-                <td>TOTAL</td>
-                <td style={{ textAlign: "right" }}>{formatRupiah(activeEventPlanned)}</td>
-                <td style={{ textAlign: "right" }}>{formatRupiah(activeEventActual)}</td>
-                <td style={{ textAlign: "right", color: activeEventPlanned - activeEventActual < 0 ? "var(--danger)" : "var(--success)" }}>
+              <tr style={{ fontWeight: 700, background: "var(--gray-50)" }}>
+                <td style={{ fontSize: "0.8125rem" }}>TOTAL</td>
+                <td className="currency" style={{ textAlign: "right" }}>{formatRupiah(activeEventPlanned)}</td>
+                <td className="currency" style={{ textAlign: "right" }}>{formatRupiah(activeEventActual)}</td>
+                <td className="currency" style={{ textAlign: "right", color: activeEventPlanned - activeEventActual < 0 ? "var(--danger)" : "var(--success)" }}>
                   {activeEventPlanned - activeEventActual >= 0 ? "+" : ""}{formatRupiah(activeEventPlanned - activeEventActual)}
                 </td>
                 <td colSpan={project.isFinalized ? 1 : 2}></td>
@@ -493,10 +523,12 @@ export default function ProjectDetailPage() {
       {/* Mobile floating vendor bar */}
       {!project.isFinalized && (
         <div className="mobile-vendor-bar">
-          <div>
-            <strong>{(project.vendors || []).length}</strong> vendors &middot; {formatRupiah(
+          <div style={{ fontSize: "0.8125rem" }}>
+            <strong>{(project.vendors || []).length}</strong> vendors
+            <span style={{ color: "var(--gray-300)", margin: "0 var(--sp-2)" }}>/</span>
+            <span className="currency">{formatRupiah(
               (project.vendors || []).reduce((s, pv) => s + Number(pv.estimatedCost || pv.vendor?.minPriceEstimate || 0), 0)
-            )}
+            )}</span>
           </div>
           <button className="btn btn-primary btn-sm" onClick={() => setShowMobileDrawer(true)}>
             View Selected
@@ -513,8 +545,10 @@ export default function ProjectDetailPage() {
               totalBudget={project.totalBudget}
               onRemove={handleRemoveVendor}
               isFinalized={project.isFinalized}
+              vendorTypes={vendorTypes}
+              colorMap={vendorTypeColorMap}
             />
-            <button className="btn btn-outline" onClick={() => setShowMobileDrawer(false)} style={{ width: "100%", marginTop: "1rem" }}>
+            <button className="btn btn-outline" onClick={() => setShowMobileDrawer(false)} style={{ width: "100%", marginTop: "var(--sp-4)" }}>
               Close
             </button>
           </div>
@@ -558,21 +592,22 @@ function CategoryCombobox({ suggestions, value, onChange, placeholder }) {
       {open && filtered.length > 0 && (
         <ul style={{
           position: "absolute", top: "100%", left: 0, right: 0,
-          background: "var(--surface)", border: "1.5px solid var(--border)",
+          background: "var(--surface)", border: "1px solid var(--border)",
           borderTop: "none", borderRadius: "0 0 var(--radius) var(--radius)",
           maxHeight: 200, overflowY: "auto", zIndex: 10,
           listStyle: "none", margin: 0, padding: 0,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          boxShadow: "var(--shadow-lg)",
         }}>
           {filtered.map((name) => (
             <li
               key={name}
               onClick={() => { setInputValue(name); onChange(name); setOpen(false); }}
               style={{
-                padding: "0.5rem 0.8rem", cursor: "pointer", fontSize: "0.92rem",
-                borderBottom: "1px solid var(--border)",
+                padding: "var(--sp-2) var(--sp-3)", cursor: "pointer", fontSize: "0.875rem",
+                borderBottom: "1px solid var(--border-light)",
+                transition: "background var(--transition-fast)",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f0f0")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--gray-50)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               {name}
@@ -624,7 +659,7 @@ function CategoryModal({ title, initial, eventType, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{title}</h3>
-        {error && <div style={{ background: "#ffebee", color: "var(--danger)", padding: "0.5rem", borderRadius: "var(--radius)", marginBottom: "0.8rem", fontSize: "0.85rem" }}>{error}</div>}
+        {error && <div className="inline-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Category Name</label>
@@ -646,11 +681,11 @@ function CategoryModal({ title, initial, eventType, onClose, onSave }) {
                 required
                 maxLength={100}
                 placeholder="Enter custom category name..."
-                style={{ marginTop: "0.5rem" }}
+                style={{ marginTop: "var(--sp-2)" }}
               />
             )}
             {form.name.length >= 80 && (
-              <span style={{ fontSize: "0.75rem", color: form.name.length >= 100 ? "var(--danger)" : "var(--text-secondary)", marginTop: "0.25rem", display: "block" }}>
+              <span style={{ fontSize: "0.6875rem", color: form.name.length >= 100 ? "var(--danger)" : "var(--text-tertiary)", marginTop: "var(--sp-1)", display: "block" }}>
                 {form.name.length}/100 characters
               </span>
             )}
@@ -713,7 +748,7 @@ function EditProjectModal({ project, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>Edit Project</h3>
-        {error && <div style={{ background: "#ffebee", color: "var(--danger)", padding: "0.5rem", borderRadius: "var(--radius)", marginBottom: "0.8rem", fontSize: "0.85rem" }}>{error}</div>}
+        {error && <div className="inline-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="grid-2">
             <div className="form-group">

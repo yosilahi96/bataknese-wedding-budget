@@ -10,10 +10,11 @@ import VendorsPage from "./pages/VendorsPage";
 import AdminVendorsPage from "./pages/AdminVendorsPage";
 import AdminMasterCategoriesPage from "./pages/AdminMasterCategoriesPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
+import AdminVendorTypesPage from "./pages/AdminVendorTypesPage";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="container" style={{ padding: "3rem", textAlign: "center" }}>Loading...</div>;
+  if (loading) return <div className="loading-state">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
@@ -22,13 +23,13 @@ export default function App() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="container" style={{ padding: "3rem", textAlign: "center" }}>Loading...</div>;
+    return <div className="loading-state">Loading...</div>;
   }
 
   return (
     <>
       {user && <Navbar />}
-      <main className="container" style={{ padding: "1.5rem 1rem 3rem" }}>
+      <main className="container" style={{ paddingTop: "var(--sp-8)", paddingBottom: "var(--sp-16)" }}>
         <Routes>
           <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
           <Route path="/register" element={user ? <Navigate to="/" replace /> : <RegisterPage />} />
@@ -77,6 +78,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AdminMasterCategoriesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/vendor-types"
+            element={
+              <ProtectedRoute>
+                <AdminVendorTypesPage />
               </ProtectedRoute>
             }
           />

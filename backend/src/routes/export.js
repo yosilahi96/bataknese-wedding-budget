@@ -1,11 +1,10 @@
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../lib/prisma");
 const { authenticate } = require("../middleware/auth");
 const { generatePDF } = require("../services/pdf");
 const { generateExcel } = require("../services/excel");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 async function getProjectWithEvents(userId, projectId) {
   return prisma.weddingProject.findFirst({

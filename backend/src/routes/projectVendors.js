@@ -1,20 +1,14 @@
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../lib/prisma");
 const { authenticate } = require("../middleware/auth");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
-// Maps vendor type to budget category name
-const VENDOR_TYPE_CATEGORY_MAP = {
-  VENUE: { categoryName: "Gedung (Venue)" },
-  CATERING: { categoryName: "Catering" },
-  ATTIRE: { categoryName: "Ulos (Traditional Cloth)" },
-  GONDANG: { categoryName: "Gondang (Traditional Music)" },
-  WO: { categoryName: "Wedding Organizer" },
-  DOCUMENTATION: { categoryName: "Dokumentasi (Photo & Video)" },
-  CHURCH: { categoryName: "Church" },
-};
+async function getVendorTypeMapping(typeCode) {
+  const vtm = await prisma.vendorTypeMaster.findUnique({ where: { code: typeCode } });
+  if (!vtm || !vtm.defaultCategoryName) return null;
+  return { categoryName: vtm.defaultCategoryName, isPricePerPax: vtm.isPricePerPax };
+}
 
 async function getOwnedProject(userId, projectId) {
   return prisma.weddingProject.findFirst({
@@ -90,7 +84,7 @@ router.delete("/:projectId/vendors/:vendorId", authenticate, async (req, res) =>
 
     // Look up the vendor to find its type → category mapping
     const vendor = await prisma.vendor.findUnique({ where: { id: req.params.vendorId } });
-    const mapping = vendor ? VENDOR_TYPE_CATEGORY_MAP[vendor.type] : null;
+    const mapping = vendor ? await getVendorTypeMapping(vendor.type) : null;
 
     // Remove the project vendor
     await prisma.projectVendor.delete({ where: { id: projectVendor.id } });
@@ -134,7 +128,7 @@ router.post("/:projectId/vendors/:vendorId/add-to-budget", authenticate, async (
     const vendor = await prisma.vendor.findUnique({ where: { id: req.params.vendorId } });
     if (!vendor) return res.status(404).json({ error: "Vendor not found" });
 
-    const mapping = VENDOR_TYPE_CATEGORY_MAP[vendor.type];
+    const mapping = await getVendorTypeMapping(vendor.type);
     if (!mapping) return res.status(400).json({ error: "No category mapping for this vendor type" });
 
     const targetEvent = project.events[0];

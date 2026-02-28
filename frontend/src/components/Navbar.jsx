@@ -50,87 +50,42 @@ export default function Navbar() {
 
   return (
     <>
-      <nav
-        style={{
-          background: "var(--primary-dark)",
-          color: "white",
-          padding: "0.8rem 1rem",
-        }}
-      >
-        <div
-          className="container"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "0.5rem",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-            <Link to="/" style={{ color: "white", fontWeight: 700, fontSize: "1.05rem" }}>
-              Batak Wedding Budget
+      <nav className="navbar">
+        <div className="container">
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)" }}>
+            <Link to="/" className="navbar-brand">
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-2)" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                BatakWedding
+              </span>
             </Link>
-            <Link to="/vendors" style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.9rem" }}>
-              Vendors
-            </Link>
-            {user?.isAdmin && (
-              <>
-                <Link to="/admin/vendors" style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.9rem" }}>
-                  Admin Vendors
-                </Link>
-                <Link to="/admin/master-categories" style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.9rem" }}>
-                  Admin Categories
-                </Link>
-                <Link to="/admin/users" style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.9rem" }}>
-                  Admin Users
-                </Link>
-              </>
-            )}
+            <nav style={{ display: "flex", alignItems: "center", gap: "var(--sp-1)", marginLeft: "var(--sp-4)" }}>
+              <Link to="/vendors" className="navbar-link">Vendors</Link>
+              {user?.isAdmin && (
+                <>
+                  <Link to="/admin/vendors" className="navbar-link">Admin Vendors</Link>
+                  <Link to="/admin/vendor-types" className="navbar-link">Vendor Types</Link>
+                  <Link to="/admin/master-categories" className="navbar-link">Categories</Link>
+                  <Link to="/admin/users" className="navbar-link">Users</Link>
+                </>
+              )}
+            </nav>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.9rem" }}>
-            <span style={{ opacity: 0.85 }}>{user?.name}</span>
-            <button
-              onClick={openChangePassword}
-              style={{
-                background: "rgba(255,255,255,0.15)",
-                color: "white",
-                border: "none",
-                padding: "0.35rem 0.8rem",
-                borderRadius: "var(--radius)",
-                fontSize: "0.85rem",
-                cursor: "pointer",
-              }}
-            >
-              Change Password
-            </button>
-            <button
-              onClick={logout}
-              style={{
-                background: "rgba(255,255,255,0.15)",
-                color: "white",
-                border: "none",
-                padding: "0.35rem 0.8rem",
-                borderRadius: "var(--radius)",
-                fontSize: "0.85rem",
-              }}
-            >
-              Logout
-            </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)" }}>
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8125rem" }}>{user?.name}</span>
+            <button onClick={openChangePassword} className="navbar-btn">Password</button>
+            <button onClick={logout} className="navbar-btn">Logout</button>
           </div>
         </div>
       </nav>
 
-      {/* Change Password Modal */}
       {showPasswordModal && (
         <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <h3>Change Password</h3>
-            {pwError && (
-              <div style={{ background: "#ffebee", color: "var(--danger)", padding: "0.5rem", borderRadius: "var(--radius)", marginBottom: "0.8rem", fontSize: "0.85rem" }}>
-                {pwError}
-              </div>
-            )}
+            {pwError && <div className="inline-error">{pwError}</div>}
             <form onSubmit={handleChangePassword}>
               <div className="form-group">
                 <label>Current Password</label>
@@ -146,15 +101,15 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setShowPw((s) => ({ ...s, current: !s.current }))}
-                    style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "var(--text-secondary)" }}
+                    style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "4px", color: "var(--text-secondary)" }}
                     tabIndex={-1}
                   >
                     {showPw.current ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" />
                       </svg>
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
                       </svg>
                     )}
@@ -176,15 +131,15 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setShowPw((s) => ({ ...s, new: !s.new }))}
-                    style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "var(--text-secondary)" }}
+                    style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "4px", color: "var(--text-secondary)" }}
                     tabIndex={-1}
                   >
                     {showPw.new ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" />
                       </svg>
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
                       </svg>
                     )}
@@ -206,15 +161,15 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setShowPw((s) => ({ ...s, confirm: !s.confirm }))}
-                    style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "var(--text-secondary)" }}
+                    style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "4px", color: "var(--text-secondary)" }}
                     tabIndex={-1}
                   >
                     {showPw.confirm ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" />
                       </svg>
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
                       </svg>
                     )}
@@ -232,7 +187,6 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Alert Modal */}
       {alertModal && (
         <AlertModal
           title={alertModal.title}

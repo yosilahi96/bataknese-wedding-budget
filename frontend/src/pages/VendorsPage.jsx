@@ -1,17 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
 import VendorCard from "../components/VendorCard";
-
-const VENDOR_TYPES = [
-  { value: "", label: "All Types" },
-  { value: "VENUE", label: "Venue" },
-  { value: "CATERING", label: "Catering" },
-  { value: "ATTIRE", label: "Attire & Ulos" },
-  { value: "GONDANG", label: "Gondang" },
-  { value: "WO", label: "Wedding Organizer" },
-  { value: "DOCUMENTATION", label: "Documentation" },
-  { value: "CHURCH", label: "Church" },
-];
+import { buildVendorTypeColorMap } from "../utils/vendorTypeColors";
 
 const SORT_OPTIONS = [
   { value: "name", label: "Name A-Z" },
@@ -25,9 +15,14 @@ function formatRupiah(n) {
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState([]);
+  const [vendorTypes, setVendorTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ type: "", isBatakSpecialist: "", sortBy: "name" });
   const [selectedVendor, setSelectedVendor] = useState(null);
+
+  useEffect(() => {
+    api.listVendorTypes().then((data) => setVendorTypes(data.vendorTypes || [])).catch(console.error);
+  }, []);
 
   useEffect(() => {
     loadVendors();
@@ -49,22 +44,31 @@ export default function VendorsPage() {
     }
   }
 
-  const counts = {};
-  vendors.forEach((v) => {
-    counts[v.type] = (counts[v.type] || 0) + 1;
+  const typeLabels = {};
+  const perPaxTypes = {};
+  vendorTypes.forEach((vt) => {
+    typeLabels[vt.code] = vt.label;
+    if (vt.isPricePerPax) perPaxTypes[vt.code] = true;
   });
+  const colorMap = buildVendorTypeColorMap(vendorTypes);
 
   return (
-    <div className="container" style={{ padding: "1.5rem 1rem" }}>
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Vendor Directory</h1>
-      <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
-        Browse and find vendors for your Bataknese wedding in Jakarta.
-      </p>
+    <div className="fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Vendor Directory</h1>
+          <p className="page-subtitle">Browse and find vendors for your Bataknese wedding in Jakarta.</p>
+        </div>
+        <span className="badge badge-neutral" style={{ fontSize: "0.75rem", padding: "var(--sp-1) var(--sp-3)" }}>
+          {vendors.length} vendors
+        </span>
+      </div>
 
       <div className="filter-bar">
         <select value={filters.type} onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}>
-          {VENDOR_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>{t.label}</option>
+          <option value="">All Types</option>
+          {vendorTypes.map((vt) => (
+            <option key={vt.code} value={vt.code}>{vt.label}</option>
           ))}
         </select>
 
@@ -74,25 +78,22 @@ export default function VendorsPage() {
           ))}
         </select>
 
-        <label style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.85rem", cursor: "pointer" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", fontSize: "0.8125rem", cursor: "pointer", color: "var(--text-secondary)" }}>
           <input
             type="checkbox"
             checked={filters.isBatakSpecialist === "true"}
             onChange={(e) => setFilters((f) => ({ ...f, isBatakSpecialist: e.target.checked ? "true" : "" }))}
+            style={{ accentColor: "var(--primary)" }}
           />
           Batak Specialist Only
         </label>
-
-        <span style={{ marginLeft: "auto", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-          {vendors.length} vendors found
-        </span>
       </div>
 
       {loading ? (
-        <p style={{ color: "var(--text-secondary)" }}>Loading vendors...</p>
+        <div className="loading-state">Loading vendors...</div>
       ) : vendors.length === 0 ? (
-        <div className="card" style={{ textAlign: "center", padding: "2rem", color: "var(--text-secondary)" }}>
-          No vendors found. Try adjusting your filters.
+        <div className="card empty-state">
+          <p>No vendors found. Try adjusting your filters.</p>
         </div>
       ) : (
         <div className="vendor-grid">
@@ -101,6 +102,8 @@ export default function VendorsPage() {
               key={vendor.id}
               vendor={vendor}
               onSelect={setSelectedVendor}
+              vendorTypes={vendorTypes}
+              colorMap={colorMap}
             />
           ))}
         </div>
@@ -109,34 +112,37 @@ export default function VendorsPage() {
       {selectedVendor && (
         <div className="modal-overlay" onClick={() => setSelectedVendor(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 500 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
-              <span className={`vendor-type-badge vendor-type-${selectedVendor.type}`}>
-                {VENDOR_TYPES.find((t) => t.value === selectedVendor.type)?.label || selectedVendor.type}
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", marginBottom: "var(--sp-4)", flexWrap: "wrap" }}>
+              <span
+                className="vendor-type-badge"
+                style={colorMap[selectedVendor.type] ? { background: colorMap[selectedVendor.type].bg, color: colorMap[selectedVendor.type].text } : {}}
+              >
+                {typeLabels[selectedVendor.type] || selectedVendor.type}
               </span>
               {selectedVendor.isBatakSpecialist && <span className="batak-badge">Batak Specialist</span>}
             </div>
 
-            <h3 style={{ marginBottom: "0.5rem" }}>{selectedVendor.name}</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: "0.75rem" }}>{selectedVendor.location}</p>
+            <h3 style={{ marginBottom: "var(--sp-2)" }}>{selectedVendor.name}</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: "var(--sp-4)" }}>{selectedVendor.location}</p>
 
-            <div style={{ background: "#fafafa", borderRadius: "var(--radius)", padding: "0.75rem", marginBottom: "0.75rem" }}>
-              <div style={{ fontWeight: 600, marginBottom: "0.3rem" }}>Price Range</div>
-              <div style={{ fontSize: "1.1rem" }}>
+            <div className="sub-card" style={{ marginBottom: "var(--sp-4)" }}>
+              <div style={{ fontWeight: 500, fontSize: "0.75rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "var(--sp-1)" }}>Price Range</div>
+              <div className="currency" style={{ fontSize: "1.125rem", fontWeight: 600 }}>
                 {formatRupiah(selectedVendor.minPriceEstimate)} - {formatRupiah(selectedVendor.maxPriceEstimate)}
-                {selectedVendor.type === "CATERING" && <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}> per pax</span>}
+                {perPaxTypes[selectedVendor.type] && <span style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", fontWeight: 400 }}> per pax</span>}
               </div>
             </div>
 
             {selectedVendor.capacity && (
-              <p style={{ marginBottom: "0.5rem" }}><strong>Capacity:</strong> {selectedVendor.capacity} pax</p>
+              <p style={{ marginBottom: "var(--sp-2)", fontSize: "0.875rem" }}><strong>Capacity:</strong> {selectedVendor.capacity} pax</p>
             )}
 
             {selectedVendor.description && (
-              <p style={{ marginBottom: "0.5rem", lineHeight: 1.5, color: "var(--text-secondary)" }}>{selectedVendor.description}</p>
+              <p style={{ marginBottom: "var(--sp-2)", lineHeight: 1.6, color: "var(--text-secondary)", fontSize: "0.875rem" }}>{selectedVendor.description}</p>
             )}
 
             {selectedVendor.contactInfo && (
-              <p style={{ marginBottom: "0.5rem" }}><strong>Contact:</strong> {selectedVendor.contactInfo}</p>
+              <p style={{ marginBottom: "var(--sp-2)", fontSize: "0.875rem" }}><strong>Contact:</strong> {selectedVendor.contactInfo}</p>
             )}
 
             <div className="modal-actions">

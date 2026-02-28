@@ -29,7 +29,6 @@ export default function AdminUsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Reset password modal
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetUser, setResetUser] = useState(null);
   const [resetPassword, setResetPassword] = useState("");
@@ -173,10 +172,18 @@ export default function AdminUsersPage() {
   if (!user?.isAdmin) return null;
 
   return (
-    <div className="container" style={{ padding: "1.5rem 1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
-        <h1 style={{ fontSize: "1.5rem" }}>Admin: Manage Users</h1>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add User</button>
+    <div className="fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Manage Users</h1>
+          <p className="page-subtitle">Create, edit, and manage user accounts</p>
+        </div>
+        <button className="btn btn-primary" onClick={openAdd} style={{ gap: "var(--sp-1)" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add User
+        </button>
       </div>
 
       <div className="filter-bar">
@@ -187,7 +194,7 @@ export default function AdminUsersPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{ minWidth: 220 }}
         />
-        <span style={{ marginLeft: "auto", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+        <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
           {filteredUsers.length > PAGE_SIZE
             ? `${(currentPage - 1) * PAGE_SIZE + 1}-${Math.min(currentPage * PAGE_SIZE, filteredUsers.length)} of ${filteredUsers.length} users`
             : `${filteredUsers.length} users`}
@@ -195,11 +202,11 @@ export default function AdminUsersPage() {
       </div>
 
       {loading ? (
-        <p style={{ color: "var(--text-secondary)" }}>Loading...</p>
+        <div className="loading-state">Loading...</div>
       ) : filteredUsers.length === 0 ? (
-        <p style={{ color: "var(--text-secondary)" }}>
-          {searchQuery ? "No users match your search." : "No users found."}
-        </p>
+        <div className="card empty-state">
+          <p>{searchQuery ? "No users match your search." : "No users found."}</p>
+        </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           <div className="table-container">
@@ -217,42 +224,44 @@ export default function AdminUsersPage() {
               <tbody>
                 {paginatedUsers.map((u) => (
                   <tr key={u.id}>
-                    <td style={{ fontWeight: 500 }}>
+                    <td style={{ fontWeight: 500, fontSize: "0.8125rem" }}>
                       {u.name}
                       {u.id === user.id && (
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginLeft: "0.4rem" }}>(you)</span>
+                        <span style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginLeft: "var(--sp-2)" }}>(you)</span>
                       )}
                     </td>
-                    <td style={{ fontSize: "0.85rem" }}>{u.email}</td>
+                    <td style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>{u.email}</td>
                     <td>
                       {u.isAdmin ? (
                         <span className="badge badge-warning">Admin</span>
                       ) : (
-                        <span className="badge badge-success">User</span>
+                        <span className="badge badge-neutral">User</span>
                       )}
                     </td>
-                    <td style={{ textAlign: "center" }}>{u._count.projects}</td>
-                    <td style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                    <td style={{ textAlign: "center", fontSize: "0.8125rem" }}>{u._count.projects}</td>
+                    <td style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
                       {new Date(u.createdAt).toLocaleDateString("id-ID")}
                     </td>
                     <td>
-                      <div style={{ display: "flex", gap: "0.3rem" }}>
-                        <button className="btn btn-outline btn-sm" onClick={() => openEdit(u)} title="Edit" style={{ padding: "0.35rem 0.5rem" }}>
+                      <div style={{ display: "flex", gap: "var(--sp-2)" }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(u)} title="Edit" style={{ padding: "4px 6px", height: "auto" }}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" />
                           </svg>
                         </button>
-                        <button className="btn btn-outline btn-sm" onClick={() => openResetPassword(u)} title="Reset Password" style={{ padding: "0.35rem 0.5rem" }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openResetPassword(u)} title="Reset Password" style={{ padding: "4px 6px", height: "auto" }}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
                           </svg>
                         </button>
                         <button
-                          className="btn btn-danger btn-sm"
+                          className="btn btn-ghost btn-sm"
                           onClick={() => setConfirmAction({ id: u.id, name: u.name, projectCount: u._count.projects })}
                           title={u.id === user.id ? "Cannot delete yourself" : "Delete"}
                           disabled={u.id === user.id}
-                          style={{ padding: "0.35rem 0.5rem" }}
+                          style={{ padding: "4px 6px", height: "auto", color: "var(--text-tertiary)" }}
+                          onMouseEnter={(e) => { if (u.id !== user.id) e.currentTarget.style.color = "var(--danger)"; }}
+                          onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-tertiary)"}
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -270,13 +279,13 @@ export default function AdminUsersPage() {
 
       {/* Pagination */}
       {!loading && totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem", marginTop: "1rem" }}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "var(--sp-2)", marginTop: "var(--sp-5)" }}>
           <button
             className="btn btn-outline btn-sm"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
           >
-            &laquo; Prev
+            Prev
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
@@ -293,7 +302,7 @@ export default function AdminUsersPage() {
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
           >
-            Next &raquo;
+            Next
           </button>
         </div>
       )}
@@ -303,7 +312,7 @@ export default function AdminUsersPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 450 }}>
             <h3>{editingUser ? "Edit User" : "Add User"}</h3>
-            {error && <div style={{ background: "#ffebee", color: "var(--danger)", padding: "0.5rem", borderRadius: "var(--radius)", marginBottom: "0.8rem", fontSize: "0.85rem" }}>{error}</div>}
+            {error && <div className="inline-error">{error}</div>}
             <form onSubmit={handleSave}>
               <div className="form-group">
                 <label>Name</label>
@@ -320,16 +329,17 @@ export default function AdminUsersPage() {
                 </div>
               )}
               <div className="form-group">
-                <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", cursor: "pointer" }}>
                   <input
                     type="checkbox"
                     checked={form.isAdmin}
                     onChange={(e) => update("isAdmin", e.target.checked)}
                     disabled={editingUser && editingUser.id === user.id}
+                    style={{ accentColor: "var(--primary)" }}
                   />
                   Admin privileges
                   {editingUser && editingUser.id === user.id && (
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>(cannot change own admin status)</span>
+                    <span style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)" }}>(cannot change own)</span>
                   )}
                 </label>
               </div>
@@ -349,10 +359,10 @@ export default function AdminUsersPage() {
         <div className="modal-overlay" onClick={() => setShowResetModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <h3>Reset Password</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: "1rem" }}>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: "var(--sp-5)" }}>
               Set a new password for <strong>{resetUser?.name}</strong> ({resetUser?.email})
             </p>
-            {resetError && <div style={{ background: "#ffebee", color: "var(--danger)", padding: "0.5rem", borderRadius: "var(--radius)", marginBottom: "0.8rem", fontSize: "0.85rem" }}>{resetError}</div>}
+            {resetError && <div className="inline-error">{resetError}</div>}
             <form onSubmit={handleResetPassword}>
               <div className="form-group">
                 <label>New Password</label>

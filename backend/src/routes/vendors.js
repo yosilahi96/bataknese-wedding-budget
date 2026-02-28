@@ -1,9 +1,8 @@
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../lib/prisma");
 const { authenticate } = require("../middleware/auth");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/vendors — list vendors with optional filters
 router.get("/", authenticate, async (req, res) => {
@@ -44,14 +43,13 @@ router.get("/recommend/:projectId", authenticate, async (req, res) => {
 
     const guestCount = project.guestCount || 0;
 
-    const vendorTypes = ["VENUE", "CATERING", "ATTIRE", "GONDANG", "WO", "DOCUMENTATION", "CHURCH"];
+    const vendorTypeMasters = await prisma.vendorTypeMaster.findMany({
+      orderBy: { sortOrder: "asc" },
+    });
     const recommendations = {};
 
-    for (const type of vendorTypes) {
-      const where = { type };
-      if (guestCount > 0 && ["VENUE", "CATERING"].includes(type)) {
-        where.capacity = { gte: guestCount };
-      }
+    for (const vtm of vendorTypeMasters) {
+      const where = { type: vtm.code };
 
       const vendors = await prisma.vendor.findMany({
         where,
@@ -61,7 +59,7 @@ router.get("/recommend/:projectId", authenticate, async (req, res) => {
         ],
       });
 
-      recommendations[type] = vendors;
+      recommendations[vtm.code] = vendors;
     }
 
     res.json({ recommendations, projectGuestCount: guestCount, projectBudget: project.totalBudget });

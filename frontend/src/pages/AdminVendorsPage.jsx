@@ -5,17 +5,12 @@ import { api } from "../api/client";
 import RupiahInput from "../components/RupiahInput";
 import ConfirmModal from "../components/ConfirmModal";
 import AlertModal from "../components/AlertModal";
+import { buildVendorTypeColorMap } from "../utils/vendorTypeColors";
 
-const VENDOR_TYPES = ["VENUE", "CATERING", "ATTIRE", "GONDANG", "WO", "DOCUMENTATION", "CHURCH"];
 const JAKARTA_AREAS = [
   "Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan",
   "Jakarta Timur", "Tangerang", "Tangerang Selatan", "Bekasi", "Depok", "Bogor",
 ];
-
-const TYPE_LABELS = {
-  VENUE: "Venue", CATERING: "Catering", ATTIRE: "Attire", GONDANG: "Gondang",
-  WO: "WO", DOCUMENTATION: "Documentation", CHURCH: "Church",
-};
 
 function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
@@ -24,7 +19,7 @@ function formatRupiah(n) {
 const PAGE_SIZE = 10;
 
 const EMPTY_FORM = {
-  name: "", type: "VENUE", location: "Jakarta Pusat",
+  name: "", type: "", location: "Jakarta Pusat",
   minPriceEstimate: "", maxPriceEstimate: "",
   capacity: "", description: "", contactInfo: "",
   isBatakSpecialist: false,
@@ -34,6 +29,7 @@ export default function AdminVendorsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [vendors, setVendors] = useState([]);
+  const [vendorTypes, setVendorTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingVendor, setEditingVendor] = useState(null);
@@ -50,6 +46,7 @@ export default function AdminVendorsPage() {
       navigate("/");
       return;
     }
+    api.listVendorTypes().then((data) => setVendorTypes(data.vendorTypes || [])).catch(console.error);
     loadVendors();
   }, [user]);
 
@@ -68,9 +65,13 @@ export default function AdminVendorsPage() {
 
   useEffect(() => { if (user?.isAdmin) { setCurrentPage(1); loadVendors(); } }, [filterType]);
 
+  const typeLabels = {};
+  vendorTypes.forEach((vt) => { typeLabels[vt.code] = vt.label; });
+  const colorMap = buildVendorTypeColorMap(vendorTypes);
+
   function openAdd() {
     setEditingVendor(null);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, type: vendorTypes[0]?.code || "" });
     setError("");
     setShowModal(true);
   }
@@ -146,20 +147,28 @@ export default function AdminVendorsPage() {
   const paginatedVendors = vendors.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
-    <div className="container" style={{ padding: "1.5rem 1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
-        <h1 style={{ fontSize: "1.5rem" }}>Admin: Manage Vendors</h1>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add Vendor</button>
+    <div className="fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Manage Vendors</h1>
+          <p className="page-subtitle">Add, edit, and manage wedding vendors</p>
+        </div>
+        <button className="btn btn-primary" onClick={openAdd} style={{ gap: "var(--sp-1)" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add Vendor
+        </button>
       </div>
 
       <div className="filter-bar">
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
           <option value="">All Types</option>
-          {VENDOR_TYPES.map((t) => (
-            <option key={t} value={t}>{TYPE_LABELS[t]}</option>
+          {vendorTypes.map((vt) => (
+            <option key={vt.code} value={vt.code}>{vt.label}</option>
           ))}
         </select>
-        <span style={{ marginLeft: "auto", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+        <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
           {vendors.length > PAGE_SIZE
             ? `${(currentPage - 1) * PAGE_SIZE + 1}-${Math.min(currentPage * PAGE_SIZE, vendors.length)} of ${vendors.length} vendors`
             : `${vendors.length} vendors`}
@@ -167,7 +176,7 @@ export default function AdminVendorsPage() {
       </div>
 
       {loading ? (
-        <p style={{ color: "var(--text-secondary)" }}>Loading...</p>
+        <div className="loading-state">Loading...</div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           <div className="table-container">
@@ -183,31 +192,48 @@ export default function AdminVendorsPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedVendors.map((v) => (
-                  <tr key={v.id}>
-                    <td style={{ fontWeight: 500 }}>{v.name}</td>
-                    <td><span className={`vendor-type-badge vendor-type-${v.type}`}>{TYPE_LABELS[v.type]}</span></td>
-                    <td style={{ fontSize: "0.85rem" }}>{v.location}</td>
-                    <td style={{ textAlign: "right", fontSize: "0.85rem" }}>
-                      {formatRupiah(v.minPriceEstimate)} - {formatRupiah(v.maxPriceEstimate)}
-                    </td>
-                    <td>{v.isBatakSpecialist ? <span className="batak-badge">Yes</span> : "-"}</td>
-                    <td>
-                      <div style={{ display: "flex", gap: "0.3rem" }}>
-                        <button className="btn btn-outline btn-sm" onClick={() => openEdit(v)} title="Edit" style={{ padding: "0.35rem 0.5rem" }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" />
-                          </svg>
-                        </button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction({ id: v.id, name: v.name })} title="Delete" style={{ padding: "0.35rem 0.5rem" }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {paginatedVendors.map((v) => {
+                  const color = colorMap[v.type];
+                  return (
+                    <tr key={v.id}>
+                      <td style={{ fontWeight: 500, fontSize: "0.8125rem" }}>{v.name}</td>
+                      <td>
+                        <span
+                          className="vendor-type-badge"
+                          style={color ? { background: color.bg, color: color.text } : {}}
+                        >
+                          {typeLabels[v.type] || v.type}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: "0.8125rem" }}>{v.location}</td>
+                      <td className="currency" style={{ textAlign: "right", fontSize: "0.8125rem" }}>
+                        {formatRupiah(v.minPriceEstimate)} - {formatRupiah(v.maxPriceEstimate)}
+                      </td>
+                      <td>{v.isBatakSpecialist ? <span className="batak-badge">Yes</span> : "-"}</td>
+                      <td>
+                        <div style={{ display: "flex", gap: "var(--sp-2)" }}>
+                          <button className="btn btn-ghost btn-sm" onClick={() => openEdit(v)} title="Edit" style={{ padding: "4px 6px", height: "auto" }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" />
+                            </svg>
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => setConfirmAction({ id: v.id, name: v.name })}
+                            title="Delete"
+                            style={{ padding: "4px 6px", height: "auto", color: "var(--text-tertiary)" }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = "var(--danger)"}
+                            onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-tertiary)"}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -216,7 +242,7 @@ export default function AdminVendorsPage() {
 
       {/* Pagination */}
       {!loading && totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem", marginTop: "1rem" }}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "var(--sp-2)", marginTop: "var(--sp-5)" }}>
           <button
             className="btn btn-outline btn-sm"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -248,7 +274,7 @@ export default function AdminVendorsPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 550 }}>
             <h3>{editingVendor ? "Edit Vendor" : "Add Vendor"}</h3>
-            {error && <div style={{ background: "#ffebee", color: "var(--danger)", padding: "0.5rem", borderRadius: "var(--radius)", marginBottom: "0.8rem", fontSize: "0.85rem" }}>{error}</div>}
+            {error && <div className="inline-error">{error}</div>}
             <form onSubmit={handleSave}>
               <div className="form-group">
                 <label>Name</label>
@@ -257,8 +283,8 @@ export default function AdminVendorsPage() {
               <div className="grid-2">
                 <div className="form-group">
                   <label>Type</label>
-                  <select value={form.type} onChange={(e) => update("type", e.target.value)}>
-                    {VENDOR_TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
+                  <select value={form.type} onChange={(e) => update("type", e.target.value)} required>
+                    {vendorTypes.map((vt) => <option key={vt.code} value={vt.code}>{vt.label}</option>)}
                   </select>
                 </div>
                 <div className="form-group">

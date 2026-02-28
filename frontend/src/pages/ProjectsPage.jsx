@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell, CartesianGrid } from "recharts";
 import { api } from "../api/client";
 
 function formatRupiah(n) {
@@ -42,29 +42,45 @@ function BudgetComparisonChart({ projects }) {
   const pestaAdatDiff = data.pestaAdat.planned - data.pestaAdat.spent;
   const threeMDiff = data.threeM.planned - data.threeM.spent;
 
+  const totalBudget = data.pestaAdat.planned + data.threeM.planned;
+
   return (
-    <div className="card" style={{ marginBottom: "1.5rem", padding: "1.2rem" }}>
-      <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>Budget Overview: Pesta Adat vs 3M</h3>
+    <div className="card fade-in" style={{ marginBottom: "var(--sp-8)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-6)" }}>
+        <div>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, letterSpacing: "-0.01em" }}>Budget Overview</h3>
+          <p style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "2px" }}>Pesta Adat vs 3M comparison</p>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 500 }}>Total Budget</div>
+          <div className="currency-lg" style={{ color: "var(--text)" }}>{formatRupiah(totalBudget)}</div>
+        </div>
+      </div>
 
       {/* Summary stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: hasPestaAdat && hasThreeM ? "1fr 1fr" : "1fr", gap: "0.75rem", marginBottom: "1.2rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: hasPestaAdat && hasThreeM ? "1fr 1fr" : "1fr", gap: "var(--sp-3)", marginBottom: "var(--sp-6)" }}>
         {hasPestaAdat && (
-          <div style={{ background: "#f1f8e9", borderRadius: "var(--radius)", padding: "0.8rem", border: "1px solid #c5e1a5" }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.2rem" }}>
-              Pesta Adat ({data.pestaAdat.count} project{data.pestaAdat.count > 1 ? "s" : ""})
+          <div className="sub-card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-3)" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>
+                Pesta Adat
+              </span>
+              <span className="badge badge-neutral" style={{ fontSize: "0.625rem" }}>
+                {data.pestaAdat.count} project{data.pestaAdat.count > 1 ? "s" : ""}
+              </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "var(--sp-4)" }}>
               <div>
-                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Planned</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 600 }}>{formatRupiah(data.pestaAdat.planned)}</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Planned</div>
+                <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{formatRupiah(data.pestaAdat.planned)}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Spent</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 600 }}>{formatRupiah(data.pestaAdat.spent)}</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Spent</div>
+                <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{formatRupiah(data.pestaAdat.spent)}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Diff</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 600, color: pestaAdatDiff >= 0 ? "var(--primary)" : "var(--danger)" }}>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Diff</div>
+                <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600, color: pestaAdatDiff >= 0 ? "var(--success)" : "var(--danger)" }}>
                   {pestaAdatDiff >= 0 ? "+" : ""}{formatRupiah(pestaAdatDiff)}
                 </div>
               </div>
@@ -72,22 +88,27 @@ function BudgetComparisonChart({ projects }) {
           </div>
         )}
         {hasThreeM && (
-          <div style={{ background: "#e8f5e9", borderRadius: "var(--radius)", padding: "0.8rem", border: "1px solid #a5d6a7" }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.2rem" }}>
-              3M Ceremony ({data.threeM.count} project{data.threeM.count > 1 ? "s" : ""})
+          <div className="sub-card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-3)" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>
+                3M Ceremony
+              </span>
+              <span className="badge badge-neutral" style={{ fontSize: "0.625rem" }}>
+                {data.threeM.count} project{data.threeM.count > 1 ? "s" : ""}
+              </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "var(--sp-4)" }}>
               <div>
-                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Planned</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 600 }}>{formatRupiah(data.threeM.planned)}</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Planned</div>
+                <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{formatRupiah(data.threeM.planned)}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Spent</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 600 }}>{formatRupiah(data.threeM.spent)}</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Spent</div>
+                <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{formatRupiah(data.threeM.spent)}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Diff</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 600, color: threeMDiff >= 0 ? "var(--primary)" : "var(--danger)" }}>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Diff</div>
+                <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600, color: threeMDiff >= 0 ? "var(--success)" : "var(--danger)" }}>
                   {threeMDiff >= 0 ? "+" : ""}{formatRupiah(threeMDiff)}
                 </div>
               </div>
@@ -97,37 +118,43 @@ function BudgetComparisonChart({ projects }) {
       </div>
 
       {/* Bar chart */}
-      <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }} barCategoryGap="25%">
-          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-          <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11 }} />
-          <Tooltip formatter={(v) => formatRupiah(v)} />
-          <Legend />
-          <Bar dataKey="Planned" fill="#81c784" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="Spent" radius={[4, 4, 0, 0]}>
-            {chartData.map((entry, idx) => (
-              <Cell key={idx} fill={entry.Spent > entry.Planned ? "#c62828" : "#2e7d32"} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ padding: "var(--sp-2) 0" }}>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={chartData} margin={{ top: 8, right: 16, left: 16, bottom: 8 }} barCategoryGap="30%">
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--gray-200)" }} tickLine={false} />
+            <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11, fill: "var(--text-tertiary)" }} axisLine={false} tickLine={false} />
+            <Tooltip
+              formatter={(v) => formatRupiah(v)}
+              contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
+            />
+            <Legend wrapperStyle={{ fontSize: "0.75rem", paddingTop: "8px" }} />
+            <Bar dataKey="Planned" fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="Spent" radius={[6, 6, 0, 0]}>
+              {chartData.map((entry, idx) => (
+                <Cell key={idx} fill={entry.Spent > entry.Planned ? "var(--danger)" : "var(--primary)"} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* Stacked percentage comparison */}
       {hasPestaAdat && hasThreeM && (
-        <div style={{ marginTop: "1rem" }}>
-          <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Spending Progress</div>
+        <div style={{ marginTop: "var(--sp-4)", paddingTop: "var(--sp-4)", borderTop: "1px solid var(--border-light)" }}>
+          <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 500, marginBottom: "var(--sp-3)" }}>Spending Progress</div>
           {[
             { label: "Pesta Adat", planned: data.pestaAdat.planned, spent: data.pestaAdat.spent },
             { label: "3M Ceremony", planned: data.threeM.planned, spent: data.threeM.spent },
           ].map((item) => {
             const pct = item.planned > 0 ? (item.spent / item.planned) * 100 : 0;
             return (
-              <div key={item.label} style={{ marginBottom: "0.4rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", marginBottom: "0.15rem" }}>
-                  <span>{item.label}</span>
-                  <span style={{ color: pct > 100 ? "var(--danger)" : "var(--text-secondary)" }}>{pct.toFixed(1)}% of planned</span>
+              <div key={item.label} style={{ marginBottom: "var(--sp-3)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", marginBottom: "var(--sp-1)" }}>
+                  <span style={{ fontWeight: 500, color: "var(--text-secondary)" }}>{item.label}</span>
+                  <span className="currency" style={{ color: pct > 100 ? "var(--danger)" : "var(--text-tertiary)" }}>{pct.toFixed(1)}%</span>
                 </div>
-                <div className="progress-bar" style={{ height: "8px" }}>
+                <div className="progress-bar">
                   <div
                     className="fill"
                     style={{
@@ -158,54 +185,76 @@ export default function ProjectsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p>Loading projects...</p>;
+  if (loading) return <div className="loading-state">Loading projects...</div>;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
-        <h1 style={{ fontSize: "1.5rem" }}>My Wedding Projects</h1>
-        <button className="btn btn-primary" onClick={() => navigate("/projects/new")}>
-          + New Project
+    <div className="fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">My Wedding Projects</h1>
+          <p className="page-subtitle">Track and manage your wedding budgets</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => navigate("/projects/new")} style={{ gap: "var(--sp-2)" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          New Project
         </button>
       </div>
 
-      {/* Budget Comparison Chart */}
       {projects.length > 0 && <BudgetComparisonChart projects={projects} />}
 
       {projects.length === 0 ? (
-        <div className="card" style={{ textAlign: "center", padding: "3rem" }}>
-          <p style={{ color: "var(--text-secondary)", marginBottom: "1rem" }}>No wedding projects yet.</p>
-          <Link to="/projects/new" className="btn btn-primary">Create Your First Project</Link>
+        <div className="card empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gray-300)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "var(--sp-4)" }}>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+          </svg>
+          <p>No wedding projects yet. Create your first one to get started.</p>
+          <Link to="/projects/new" className="btn btn-primary btn-lg">Create Your First Project</Link>
         </div>
       ) : (
-        <div style={{ display: "grid", gap: "1rem" }}>
-          {projects.map((p) => {
+        <div style={{ display: "grid", gap: "var(--sp-3)" }}>
+          {projects.map((p, index) => {
             const totalActual = (p.events || []).flatMap((e) => e.categories || []).reduce((s, c) => s + Number(c.actualCost), 0);
             const pct = Number(p.totalBudget) > 0 ? (totalActual / Number(p.totalBudget)) * 100 : 0;
 
             return (
-              <Link key={p.id} to={`/projects/${p.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                <div className="card" style={{ transition: "box-shadow 0.2s", cursor: "pointer" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "0.5rem" }}>
-                    <div>
-                      <h3 style={{ fontSize: "1.1rem", marginBottom: "0.3rem" }}>
-                        {p.groomName} & {p.brideName}
-                      </h3>
-                      <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+              <Link
+                key={p.id}
+                to={`/projects/${p.id}`}
+                style={{ textDecoration: "none", color: "inherit", animationDelay: `${index * 50}ms` }}
+                className="fade-in"
+              >
+                <div className="card card-hover" style={{ cursor: "pointer" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: "var(--sp-4)" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)", marginBottom: "var(--sp-1)" }}>
+                        <h3 style={{ fontSize: "1rem", fontWeight: 600, letterSpacing: "-0.01em" }}>
+                          {p.groomName} & {p.brideName}
+                        </h3>
+                        <span className={`badge ${p.isFinalized ? "badge-success" : "badge-warning"}`}>
+                          {p.isFinalized ? "Finalized" : "In Progress"}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
                         {new Date(p.weddingDate).toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })}
-                        {" "}&bull;{" "}
+                        <span style={{ margin: "0 var(--sp-2)", color: "var(--gray-300)" }}>/</span>
                         {p.eventType === "THREE_M" ? "3M Ceremony" : "Pesta Adat"}
                       </p>
                     </div>
-                    <span className={`badge ${p.isFinalized ? "badge-success" : "badge-warning"}`}>
-                      {p.isFinalized ? "Finalized" : "In Progress"}
-                    </span>
-                  </div>
-                  <div style={{ marginTop: "0.8rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.3rem" }}>
-                      <span>Budget: {formatRupiah(p.totalBudget)}</span>
-                      <span>{pct.toFixed(1)}% used</span>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div className="currency" style={{ fontSize: "1.125rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
+                        {formatRupiah(p.totalBudget)}
+                      </div>
+                      <div className="currency" style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "2px" }}>
+                        {pct.toFixed(1)}% used
+                      </div>
                     </div>
+                  </div>
+                  <div style={{ marginTop: "var(--sp-4)" }}>
                     <div className="progress-bar">
                       <div
                         className="fill"

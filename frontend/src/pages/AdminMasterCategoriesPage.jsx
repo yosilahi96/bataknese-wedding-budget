@@ -110,13 +110,21 @@ export default function AdminMasterCategoriesPage() {
   if (!user?.isAdmin) return null;
 
   return (
-    <div className="container" style={{ padding: "1.5rem 1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
-        <h1 style={{ fontSize: "1.5rem" }}>Admin: Master Categories</h1>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add Category</button>
+    <div className="fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Master Categories</h1>
+          <p className="page-subtitle">Manage default budget categories for wedding events</p>
+        </div>
+        <button className="btn btn-primary" onClick={openAdd} style={{ gap: "var(--sp-1)" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add Category
+        </button>
       </div>
 
-      <div className="event-tabs" style={{ marginBottom: "1rem" }}>
+      <div className="event-tabs" style={{ marginBottom: "var(--sp-5)" }}>
         {Object.entries(EVENT_TYPE_LABELS).map(([key, label]) => (
           <button
             key={key}
@@ -129,9 +137,11 @@ export default function AdminMasterCategoriesPage() {
       </div>
 
       {loading ? (
-        <p style={{ color: "var(--text-secondary)" }}>Loading...</p>
+        <div className="loading-state">Loading...</div>
       ) : categories.length === 0 ? (
-        <p style={{ color: "var(--text-secondary)" }}>No master categories found for this event type.</p>
+        <div className="card empty-state">
+          <p>No master categories found for this event type.</p>
+        </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           <div className="table-container">
@@ -147,17 +157,24 @@ export default function AdminMasterCategoriesPage() {
               <tbody>
                 {categories.map((cat) => (
                   <tr key={cat.id}>
-                    <td style={{ textAlign: "center", color: "var(--text-secondary)" }}>{cat.sortOrder}</td>
-                    <td style={{ fontWeight: 500 }}>{cat.name}</td>
-                    <td><span className="badge badge-success" style={{ fontSize: "0.75rem" }}>{EVENT_TYPE_LABELS[cat.eventType]}</span></td>
+                    <td style={{ textAlign: "center", color: "var(--text-tertiary)", fontSize: "0.8125rem" }}>{cat.sortOrder}</td>
+                    <td style={{ fontWeight: 500, fontSize: "0.8125rem" }}>{cat.name}</td>
+                    <td><span className="badge badge-neutral">{EVENT_TYPE_LABELS[cat.eventType]}</span></td>
                     <td>
-                      <div style={{ display: "flex", gap: "0.3rem" }}>
-                        <button className="btn btn-outline btn-sm" onClick={() => openEdit(cat)} title="Edit" style={{ padding: "0.35rem 0.5rem" }}>
+                      <div style={{ display: "flex", gap: "var(--sp-2)" }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(cat)} title="Edit" style={{ padding: "4px 6px", height: "auto" }}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" />
                           </svg>
                         </button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction({ id: cat.id, name: cat.name })} title="Delete" style={{ padding: "0.35rem 0.5rem" }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => setConfirmAction({ id: cat.id, name: cat.name })}
+                          title="Delete"
+                          style={{ padding: "4px 6px", height: "auto", color: "var(--text-tertiary)" }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = "var(--danger)"}
+                          onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-tertiary)"}
+                        >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                           </svg>
@@ -176,7 +193,7 @@ export default function AdminMasterCategoriesPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 450 }}>
             <h3>{editingCategory ? "Edit Category" : "Add Category"}</h3>
-            {error && <div style={{ background: "#ffebee", color: "var(--danger)", padding: "0.5rem", borderRadius: "var(--radius)", marginBottom: "0.8rem", fontSize: "0.85rem" }}>{error}</div>}
+            {error && <div className="inline-error">{error}</div>}
             <form onSubmit={handleSave}>
               <div className="form-group">
                 <label>Name</label>

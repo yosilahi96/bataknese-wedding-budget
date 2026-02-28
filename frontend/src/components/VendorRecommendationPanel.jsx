@@ -3,16 +3,6 @@ import { api } from "../api/client";
 import VendorCompareModal from "./VendorCompareModal";
 import AlertModal from "./AlertModal";
 
-const TYPE_TABS = [
-  { key: "VENUE", label: "Venue" },
-  { key: "CATERING", label: "Catering" },
-  { key: "ATTIRE", label: "Attire" },
-  { key: "GONDANG", label: "Gondang" },
-  { key: "WO", label: "WO" },
-  { key: "DOCUMENTATION", label: "Docs" },
-  { key: "CHURCH", label: "Church" },
-];
-
 const JAKARTA_AREAS = [
   "Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan",
   "Jakarta Timur", "Tangerang", "Tangerang Selatan", "Bekasi", "Depok", "Bogor",
@@ -39,7 +29,8 @@ function formatRupiah(n) {
 
 export default function VendorRecommendationPanel({ projectId, guestCount, onVendorAdded, selectedVendorIds = [] }) {
   const [recommendations, setRecommendations] = useState({});
-  const [activeType, setActiveType] = useState("VENUE");
+  const [vendorTypes, setVendorTypes] = useState([]);
+  const [activeType, setActiveType] = useState("");
   const [loading, setLoading] = useState(true);
   const [compareVendors, setCompareVendors] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
@@ -51,6 +42,14 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
   const [filterLocation, setFilterLocation] = useState("");
   const [filterPrice, setFilterPrice] = useState("");
   const [filterCapacity, setFilterCapacity] = useState("");
+
+  useEffect(() => {
+    api.listVendorTypes().then((data) => {
+      const types = data.vendorTypes || [];
+      setVendorTypes(types);
+      if (types.length > 0 && !activeType) setActiveType(types[0].code);
+    }).catch(console.error);
+  }, []);
 
   useEffect(() => {
     loadRecommendations();
@@ -67,6 +66,9 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
       setLoading(false);
     }
   }
+
+  const perPaxTypes = {};
+  vendorTypes.forEach((vt) => { if (vt.isPricePerPax) perPaxTypes[vt.code] = true; });
 
   function toggleCompare(vendor) {
     const exists = compareVendors.find((v) => v.id === vendor.id);
@@ -96,7 +98,7 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
     try {
       const avg = (Number(vendor.minPriceEstimate) + Number(vendor.maxPriceEstimate)) / 2;
       let estimatedCost = avg;
-      if (vendor.type === "CATERING" && guestCount) {
+      if (perPaxTypes[vendor.type] && guestCount) {
         estimatedCost = avg * guestCount;
       }
       await api.addProjectVendor(projectId, {
@@ -149,8 +151,8 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
 
   return (
     <div className="card" style={{ marginBottom: 0 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
-        <h3 style={{ fontSize: "1.1rem" }}>Vendor Recommendations</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-5)", flexWrap: "wrap", gap: "var(--sp-3)" }}>
+        <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, letterSpacing: "-0.01em" }}>Vendor Recommendations</h3>
         {compareVendors.length >= 2 && (
           <button className="btn btn-primary btn-sm" onClick={() => setShowCompare(true)}>
             Compare ({compareVendors.length})
@@ -159,7 +161,7 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
       </div>
 
       {/* Search + Filters */}
-      <div className="filter-bar" style={{ marginBottom: "1rem" }}>
+      <div className="filter-bar">
         <input
           type="text"
           placeholder="Search vendors..."
@@ -180,22 +182,22 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
       </div>
 
       {/* Type Tabs + Sort */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--sp-3)", marginBottom: "var(--sp-4)" }}>
         <div className="event-tabs" style={{ marginBottom: 0 }}>
-          {TYPE_TABS.map((tab) => (
+          {vendorTypes.map((vt) => (
             <button
-              key={tab.key}
-              className={`event-tab${activeType === tab.key ? " active" : ""}`}
-              onClick={() => { setActiveType(tab.key); setCompareVendors([]); setCompareError(""); }}
+              key={vt.code}
+              className={`event-tab${activeType === vt.code ? " active" : ""}`}
+              onClick={() => { setActiveType(vt.code); setCompareVendors([]); setCompareError(""); }}
             >
-              {tab.label}
+              {vt.label}
             </button>
           ))}
         </div>
         <select
           value={priceSort}
           onChange={(e) => setPriceSort(e.target.value)}
-          style={{ padding: "0.35rem 0.5rem", borderRadius: "var(--radius)", border: "1px solid var(--border)", fontSize: "0.8rem" }}
+          style={{ padding: "var(--sp-1) var(--sp-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", fontSize: "0.75rem", height: 30, background: "white", color: "var(--text-secondary)" }}
         >
           <option value="default">Default</option>
           <option value="low">Price: Low to High</option>
@@ -203,24 +205,14 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
         </select>
       </div>
 
-      {compareError && (
-        <div style={{
-          background: "#fef2f2",
-          color: "#b91c1c",
-          border: "1px solid #fecaca",
-          borderRadius: "6px",
-          padding: "0.6rem 1rem",
-          marginBottom: "1rem",
-          fontSize: "0.85rem",
-        }}>
-          {compareError}
-        </div>
-      )}
+      {compareError && <div className="inline-error">{compareError}</div>}
 
       {loading ? (
-        <p style={{ color: "var(--text-secondary)" }}>Loading recommendations...</p>
+        <div className="loading-state" style={{ padding: "var(--sp-8)" }}>Loading recommendations...</div>
       ) : activeVendors.length === 0 ? (
-        <p style={{ color: "var(--text-secondary)" }}>No vendors found. {searchQuery || filterLocation || filterPrice || filterCapacity ? "Try adjusting your filters." : guestCount ? "" : "Set guest count for better results."}</p>
+        <p style={{ color: "var(--text-tertiary)", fontSize: "0.8125rem", padding: "var(--sp-8)", textAlign: "center" }}>
+          No vendors found. {searchQuery || filterLocation || filterPrice || filterCapacity ? "Try adjusting your filters." : guestCount ? "" : "Set guest count for better results."}
+        </p>
       ) : (
         <div className="table-container">
           <table>
@@ -241,50 +233,49 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
                   <tr
                     key={vendor.id}
                     className={isSelected ? "vendor-selected" : ""}
-                    style={{ background: isComparing && !isSelected ? "#f0f9ff" : undefined }}
+                    style={{ background: isComparing && !isSelected ? "var(--gray-50)" : undefined }}
                   >
                     <td>
-                      <div style={{ fontWeight: 500 }}>{vendor.name}</div>
+                      <div style={{ fontWeight: 500, fontSize: "0.8125rem" }}>{vendor.name}</div>
                       {vendor.description && (
-                        <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: "0.15rem", maxWidth: 250, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginTop: "2px", maxWidth: 250, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {vendor.description}
                         </div>
                       )}
                     </td>
-                    <td style={{ fontSize: "0.85rem" }}>
+                    <td style={{ fontSize: "0.8125rem" }}>
                       {vendor.location}
-                      {vendor.capacity ? <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>{vendor.capacity} pax</div> : null}
+                      {vendor.capacity ? <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)" }}>{vendor.capacity} pax</div> : null}
                     </td>
-                    <td style={{ textAlign: "right", fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                    <td className="currency" style={{ textAlign: "right", fontSize: "0.8125rem", whiteSpace: "nowrap" }}>
                       {formatRupiah(vendor.minPriceEstimate)} - {formatRupiah(vendor.maxPriceEstimate)}
-                      {vendor.type === "CATERING" && <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}> /pax</span>}
+                      {perPaxTypes[vendor.type] && <span style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)" }}> /pax</span>}
                     </td>
                     <td style={{ textAlign: "center" }}>
-                      {vendor.isBatakSpecialist && <span className="badge badge-success" style={{ fontSize: "0.7rem" }}>Yes</span>}
+                      {vendor.isBatakSpecialist && <span className="badge badge-success" style={{ fontSize: "0.625rem" }}>Yes</span>}
                     </td>
                     <td>
-                      <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: "var(--sp-2)" }}>
                         <button
-                          className="btn btn-outline btn-sm"
+                          className={`btn btn-sm ${isComparing ? "btn-outline" : "btn-ghost"}`}
                           onClick={() => toggleCompare(vendor)}
-                          style={{ fontSize: "0.7rem", padding: "0.25rem 0.4rem" }}
+                          style={{ fontSize: "0.6875rem" }}
                         >
                           {isComparing ? "Unselect" : "Compare"}
                         </button>
                         {isSelected ? (
-                          <button
-                            className="btn btn-sm"
-                            disabled
-                            style={{ fontSize: "0.7rem", padding: "0.25rem 0.4rem", background: "#c8e6c9", color: "#2e7d32", border: "none" }}
-                          >
+                          <span className="badge badge-success" style={{ fontSize: "0.625rem", display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
                             Selected
-                          </button>
+                          </span>
                         ) : (
                           <button
                             className="btn btn-primary btn-sm"
                             onClick={() => handleSelect(vendor)}
                             disabled={actionLoading === vendor.id}
-                            style={{ fontSize: "0.7rem", padding: "0.25rem 0.4rem" }}
+                            style={{ fontSize: "0.6875rem" }}
                           >
                             {actionLoading === vendor.id ? "..." : "Select"}
                           </button>
@@ -303,6 +294,7 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
         <VendorCompareModal
           vendors={compareVendors}
           guestCount={guestCount}
+          vendorTypes={vendorTypes}
           onClose={() => setShowCompare(false)}
         />
       )}

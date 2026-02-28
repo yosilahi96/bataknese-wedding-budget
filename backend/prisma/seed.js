@@ -185,6 +185,24 @@ async function main() {
     console.log("Vendors already seeded:", vendorCount, "exist");
   }
 
+  // --- Vendor Type Masters ---
+  const vendorTypeCount = await prisma.vendorTypeMaster.count();
+  if (vendorTypeCount === 0) {
+    const vendorTypes = [
+      { code: "VENUE", label: "Venue", defaultCategoryName: "Gedung (Venue)", isPricePerPax: false, sortOrder: 1 },
+      { code: "CATERING", label: "Catering", defaultCategoryName: "Catering", isPricePerPax: true, sortOrder: 2 },
+      { code: "ATTIRE", label: "Attire & Ulos", defaultCategoryName: "Ulos (Traditional Cloth)", isPricePerPax: false, sortOrder: 3 },
+      { code: "GONDANG", label: "Gondang", defaultCategoryName: "Gondang (Traditional Music)", isPricePerPax: false, sortOrder: 4 },
+      { code: "WO", label: "Wedding Organizer", defaultCategoryName: "Wedding Organizer", isPricePerPax: false, sortOrder: 5 },
+      { code: "DOCUMENTATION", label: "Documentation", defaultCategoryName: "Dokumentasi (Photo & Video)", isPricePerPax: false, sortOrder: 6 },
+      { code: "CHURCH", label: "Church", defaultCategoryName: "Church", isPricePerPax: false, sortOrder: 7 },
+    ];
+    await prisma.vendorTypeMaster.createMany({ data: vendorTypes });
+    console.log("Created", vendorTypes.length, "vendor type masters");
+  } else {
+    console.log("Vendor type masters already seeded:", vendorTypeCount, "exist");
+  }
+
   // --- Master Categories ---
   const masterCatCount = await prisma.masterCategory.count();
   if (masterCatCount === 0) {

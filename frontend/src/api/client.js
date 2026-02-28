@@ -81,6 +81,9 @@ export const api = {
     return request(`/master-categories${qs}`);
   },
 
+  // Vendor Types
+  listVendorTypes: () => request("/vendor-types"),
+
   // Admin
   adminCreateVendor: (data) =>
     request("/admin/vendors", { method: "POST", body: JSON.stringify(data) }),
@@ -94,6 +97,14 @@ export const api = {
     request(`/admin/master-categories/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   adminDeleteMasterCategory: (id) =>
     request(`/admin/master-categories/${id}`, { method: "DELETE" }),
+
+  // Admin - Vendor Types
+  adminCreateVendorType: (data) =>
+    request("/admin/vendor-types", { method: "POST", body: JSON.stringify(data) }),
+  adminUpdateVendorType: (id, data) =>
+    request(`/admin/vendor-types/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  adminDeleteVendorType: (id) =>
+    request(`/admin/vendor-types/${id}`, { method: "DELETE" }),
 
   // Admin - Users
   adminListUsers: () => request("/admin/users"),

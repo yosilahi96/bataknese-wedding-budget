@@ -12,14 +12,17 @@ enum EventType {
   THREE_M
 }
 
-enum VendorType {
-  VENUE
-  CATERING
-  ATTIRE
-  GONDANG
-  WO
-  DOCUMENTATION
-  CHURCH
+model VendorTypeMaster {
+  id                  String   @id @default(uuid())
+  code                String   @unique
+  label               String
+  defaultCategoryName String?  @map("default_category_name")
+  isPricePerPax       Boolean  @default(false) @map("is_price_per_pax")
+  sortOrder           Int      @default(0) @map("sort_order")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("vendor_type_masters")
 }
 
 model User {
@@ -106,7 +109,7 @@ model MasterCategory {
 model Vendor {
   id                String      @id @default(uuid())
   name              String
-  type              VendorType
+  type              String
   location          String
   minPriceEstimate  Decimal     @map("min_price_estimate") @db.Decimal(15, 2)
   maxPriceEstimate  Decimal     @map("max_price_estimate") @db.Decimal(15, 2)

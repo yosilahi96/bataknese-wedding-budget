@@ -28,18 +28,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: "4rem auto" }}>
-      <div className="card">
-        <h2 style={{ marginBottom: "0.3rem" }}>Create Account</h2>
-        <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-          Start tracking your Batak wedding budget
-        </p>
+    <div style={{ maxWidth: 420, margin: "var(--sp-12) auto" }}>
+      <div className="card card-elevated fade-in" style={{ padding: "var(--sp-10) var(--sp-8) var(--sp-8)" }}>
+        <div style={{ textAlign: "center", marginBottom: "var(--sp-8)" }}>
+          <h2 style={{ fontSize: "1.375rem", fontWeight: 700, letterSpacing: "-0.025em", marginBottom: "var(--sp-1)" }}>Create Account</h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
+            Start tracking your Batak wedding budget
+          </p>
+        </div>
 
-        {error && (
-          <div style={{ background: "#ffebee", color: "var(--danger)", padding: "0.6rem 0.8rem", borderRadius: "var(--radius)", marginBottom: "1rem", fontSize: "0.88rem" }}>
-            {error}
-          </div>
-        )}
+        {error && <div className="inline-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -54,12 +52,12 @@ export default function RegisterPage() {
             <label>Password</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Min 6 characters" />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: "100%" }} disabled={loading}>
+          <button type="submit" className="btn btn-primary btn-lg" style={{ width: "100%" }} disabled={loading}>
             {loading ? "Creating account..." : "Register"}
           </button>
         </form>
 
-        <p style={{ textAlign: "center", marginTop: "1rem", fontSize: "0.88rem", color: "var(--text-secondary)" }}>
+        <p style={{ textAlign: "center", marginTop: "var(--sp-5)", fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
           Already have an account? <Link to="/login">Sign In</Link>
         </p>
       </div>

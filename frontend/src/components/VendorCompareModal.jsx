@@ -2,14 +2,20 @@ function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
 }
 
-export default function VendorCompareModal({ vendors, guestCount, onClose }) {
+export default function VendorCompareModal({ vendors, guestCount, vendorTypes = [], onClose }) {
   if (!vendors || vendors.length < 2) return null;
+
+  const perPaxTypes = {};
+  vendorTypes.forEach((vt) => { if (vt.isPricePerPax) perPaxTypes[vt.code] = true; });
+
+  const typeLabels = {};
+  vendorTypes.forEach((vt) => { typeLabels[vt.code] = vt.label; });
 
   const prices = vendors.map((v) => (Number(v.minPriceEstimate) + Number(v.maxPriceEstimate)) / 2);
   const minPriceIdx = prices.indexOf(Math.min(...prices));
 
   const rows = [
-    { label: "Type", values: vendors.map((v) => v.type) },
+    { label: "Type", values: vendors.map((v) => typeLabels[v.type] || v.type) },
     { label: "Location", values: vendors.map((v) => v.location) },
     { label: "Min Price", values: vendors.map((v) => formatRupiah(v.minPriceEstimate)), bestIdx: minPriceIdx },
     { label: "Max Price", values: vendors.map((v) => formatRupiah(v.maxPriceEstimate)) },
@@ -18,7 +24,7 @@ export default function VendorCompareModal({ vendors, guestCount, onClose }) {
     { label: "Contact", values: vendors.map((v) => v.contactInfo || "-") },
   ];
 
-  if (guestCount && vendors[0]?.type === "CATERING") {
+  if (guestCount && perPaxTypes[vendors[0]?.type]) {
     rows.push({
       label: `Est. Total (${guestCount} pax)`,
       values: vendors.map((v) => {

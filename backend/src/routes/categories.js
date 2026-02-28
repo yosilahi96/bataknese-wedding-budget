@@ -1,9 +1,8 @@
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../lib/prisma");
 const { authenticate } = require("../middleware/auth");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 async function getOwnedEvent(userId, projectId, eventId) {
   const project = await prisma.weddingProject.findFirst({

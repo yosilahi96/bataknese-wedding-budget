@@ -1,13 +1,106 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../lib/prisma");
 const { authenticate } = require("../middleware/auth");
 const { requireAdmin } = require("../middleware/admin");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
-const VALID_TYPES = ["VENUE", "CATERING", "ATTIRE", "GONDANG", "WO", "DOCUMENTATION", "CHURCH"];
+async function getValidVendorTypeCodes() {
+  const types = await prisma.vendorTypeMaster.findMany({ select: { code: true } });
+  return types.map((t) => t.code);
+}
+
+// ── Vendor Type Management ───────────────────────────────
+
+// POST /api/admin/vendor-types — create vendor type
+router.post("/vendor-types", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { code, label, defaultCategoryName, isPricePerPax, sortOrder } = req.body;
+    if (!code || !label) {
+      return res.status(400).json({ error: "Code and label are required" });
+    }
+    const upperCode = code.toUpperCase().replace(/\s+/g, "_");
+    const existing = await prisma.vendorTypeMaster.findUnique({ where: { code: upperCode } });
+    if (existing) {
+      return res.status(409).json({ error: "A vendor type with this code already exists" });
+    }
+    const vendorType = await prisma.vendorTypeMaster.create({
+      data: {
+        code: upperCode,
+        label,
+        defaultCategoryName: defaultCategoryName || null,
+        isPricePerPax: isPricePerPax || false,
+        sortOrder: sortOrder || 0,
+      },
+    });
+    res.status(201).json({ vendorType });
+  } catch (err) {
+    console.error("Create vendor type error:", err);
+    res.status(500).json({ error: "Failed to create vendor type" });
+  }
+});
+
+// PUT /api/admin/vendor-types/:id — update vendor type
+router.put("/vendor-types/:id", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const existing = await prisma.vendorTypeMaster.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ error: "Vendor type not found" });
+
+    const { code, label, defaultCategoryName, isPricePerPax, sortOrder } = req.body;
+
+    if (code !== undefined && code !== existing.code) {
+      const upperCode = code.toUpperCase().replace(/\s+/g, "_");
+      const codeTaken = await prisma.vendorTypeMaster.findUnique({ where: { code: upperCode } });
+      if (codeTaken) {
+        return res.status(409).json({ error: "A vendor type with this code already exists" });
+      }
+      // Update all vendors that reference the old code
+      await prisma.vendor.updateMany({
+        where: { type: existing.code },
+        data: { type: upperCode },
+      });
+    }
+
+    const vendorType = await prisma.vendorTypeMaster.update({
+      where: { id: req.params.id },
+      data: {
+        ...(code !== undefined && { code: code.toUpperCase().replace(/\s+/g, "_") }),
+        ...(label !== undefined && { label }),
+        ...(defaultCategoryName !== undefined && { defaultCategoryName: defaultCategoryName || null }),
+        ...(isPricePerPax !== undefined && { isPricePerPax }),
+        ...(sortOrder !== undefined && { sortOrder }),
+      },
+    });
+    res.json({ vendorType });
+  } catch (err) {
+    console.error("Update vendor type error:", err);
+    res.status(500).json({ error: "Failed to update vendor type" });
+  }
+});
+
+// DELETE /api/admin/vendor-types/:id — delete vendor type
+router.delete("/vendor-types/:id", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const existing = await prisma.vendorTypeMaster.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ error: "Vendor type not found" });
+
+    const vendorCount = await prisma.vendor.count({ where: { type: existing.code } });
+    if (vendorCount > 0) {
+      return res.status(400).json({
+        error: `Cannot delete: ${vendorCount} vendor${vendorCount > 1 ? "s" : ""} still use this type. Reassign them first.`,
+      });
+    }
+
+    await prisma.vendorTypeMaster.delete({ where: { id: req.params.id } });
+    res.json({ message: "Vendor type deleted" });
+  } catch (err) {
+    console.error("Delete vendor type error:", err);
+    res.status(500).json({ error: "Failed to delete vendor type" });
+  }
+});
+
+// ── Vendor Management ────────────────────────────────────
 
 // POST /api/admin/vendors — create vendor
 router.post("/vendors", authenticate, requireAdmin, async (req, res) => {
@@ -18,7 +111,8 @@ router.post("/vendors", authenticate, requireAdmin, async (req, res) => {
     if (!name || !type || !location || minPriceEstimate == null || maxPriceEstimate == null) {
       return res.status(400).json({ error: "Name, type, location, and price estimates are required" });
     }
-    if (!VALID_TYPES.includes(type)) {
+    const validTypes = await getValidVendorTypeCodes();
+    if (!validTypes.includes(type)) {
       return res.status(400).json({ error: "Invalid vendor type" });
     }
 
@@ -49,8 +143,11 @@ router.put("/vendors/:id", authenticate, requireAdmin, async (req, res) => {
     const { name, type, location, minPriceEstimate, maxPriceEstimate, capacity,
             description, contactInfo, isBatakSpecialist } = req.body;
 
-    if (type !== undefined && !VALID_TYPES.includes(type)) {
-      return res.status(400).json({ error: "Invalid vendor type" });
+    if (type !== undefined) {
+      const validTypes = await getValidVendorTypeCodes();
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({ error: "Invalid vendor type" });
+      }
     }
 
     const vendor = await prisma.vendor.update({
