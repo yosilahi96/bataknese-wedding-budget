@@ -65,14 +65,15 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/vendors"
-            element={
-              <ProtectedRoute>
-                <AdminVendorsPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/admin" element={<Navigate to="/admin/vendors" replace />} />
+           <Route
+             path="/admin/vendors"
+             element={
+               <ProtectedRoute>
+                 <AdminVendorsPage />
+               </ProtectedRoute>
+             }
+           />
           <Route
             path="/admin/master-categories"
             element={
