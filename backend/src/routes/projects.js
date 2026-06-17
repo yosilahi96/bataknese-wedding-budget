@@ -15,6 +15,28 @@ const PROJECT_INCLUDE = {
   },
 };
 
+function parseWeddingDate(value) {
+  if (typeof value === "string") {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+      return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    }
+  }
+
+  return new Date(value);
+}
+
+function isFutureDate(date) {
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+  const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const candidateDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return candidateDateOnly > todayDateOnly;
+}
+
 function mapCategories(list) {
   return list.map((c) => ({ name: c.name, sortOrder: c.sortOrder, plannedBudget: 0, actualCost: 0 }));
 }
@@ -64,6 +86,11 @@ router.post("/", authenticate, async (req, res) => {
       return res.status(400).json({ error: "eventType must be PESTA_ADAT or THREE_M" });
     }
 
+    const parsedWeddingDate = parseWeddingDate(weddingDate);
+    if (!isFutureDate(parsedWeddingDate)) {
+      return res.status(400).json({ error: "Wedding date must be a future date" });
+    }
+
     const masterCategories = await prisma.masterCategory.findMany({
       where: { eventType },
       orderBy: { sortOrder: "asc" },
@@ -82,7 +109,7 @@ router.post("/", authenticate, async (req, res) => {
         brideName,
         groomDomicile,
         brideDomicile,
-        weddingDate: new Date(weddingDate),
+        weddingDate: parsedWeddingDate,
         totalBudget,
         guestCount: guestCount || null,
         eventType,
@@ -115,6 +142,11 @@ router.put("/:id", authenticate, async (req, res) => {
     }
 
     const { groomName, brideName, groomDomicile, brideDomicile, weddingDate, totalBudget, guestCount } = req.body;
+    const parsedWeddingDate = weddingDate ? parseWeddingDate(weddingDate) : null;
+
+    if (weddingDate && !isFutureDate(parsedWeddingDate)) {
+      return res.status(400).json({ error: "Wedding date must be a future date" });
+    }
 
     const project = await prisma.weddingProject.update({
       where: { id: req.params.id },
@@ -123,7 +155,7 @@ router.put("/:id", authenticate, async (req, res) => {
         ...(brideName && { brideName }),
         ...(groomDomicile && { groomDomicile }),
         ...(brideDomicile && { brideDomicile }),
-        ...(weddingDate && { weddingDate: new Date(weddingDate) }),
+        ...(weddingDate && { weddingDate: parsedWeddingDate }),
         ...(totalBudget != null && { totalBudget }),
         ...(guestCount !== undefined && { guestCount: guestCount || null }),
       },

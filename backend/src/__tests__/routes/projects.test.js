@@ -11,6 +11,15 @@ const PROJECT_WITH_INCLUDE = {
   vendors: [],
 };
 
+function dateInputDaysFromNow(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 describe("Project Routes", () => {
   describe("GET /api/projects", () => {
     it("should list projects for authenticated user", async () => {
@@ -68,7 +77,7 @@ describe("Project Routes", () => {
           brideName: "Sari",
           groomDomicile: "Jakarta",
           brideDomicile: "Medan",
-          weddingDate: "2025-06-15",
+          weddingDate: dateInputDaysFromNow(30),
           totalBudget: 100000000,
           eventType: "PESTA_ADAT",
         });
@@ -95,12 +104,30 @@ describe("Project Routes", () => {
           brideName: "Sari",
           groomDomicile: "Jakarta",
           brideDomicile: "Medan",
-          weddingDate: "2025-06-15",
+          weddingDate: dateInputDaysFromNow(30),
           totalBudget: 100000000,
           eventType: "INVALID",
         });
 
       expect(res.status).toBe(400);
+    });
+
+    it("should return 400 when weddingDate is not in the future", async () => {
+      const res = await request(app)
+        .post("/api/projects")
+        .set("Authorization", authHeader(TEST_USER.id))
+        .send({
+          groomName: "Budi",
+          brideName: "Sari",
+          groomDomicile: "Jakarta",
+          brideDomicile: "Medan",
+          weddingDate: dateInputDaysFromNow(-1),
+          totalBudget: 100000000,
+          eventType: "PESTA_ADAT",
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe("Wedding date must be a future date");
     });
   });
 
@@ -141,6 +168,18 @@ describe("Project Routes", () => {
         .send({ groomName: "Updated" });
 
       expect(res.status).toBe(403);
+    });
+
+    it("should return 400 when updating weddingDate to today or a past date", async () => {
+      prisma.weddingProject.findFirst.mockResolvedValue(TEST_PROJECT);
+
+      const res = await request(app)
+        .put(`/api/projects/${TEST_PROJECT.id}`)
+        .set("Authorization", authHeader(TEST_USER.id))
+        .send({ weddingDate: dateInputDaysFromNow(0) });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe("Wedding date must be a future date");
     });
   });
 

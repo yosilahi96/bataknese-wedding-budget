@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { useLanguage } from "../i18n/LanguageContext";
 import RupiahInput from "../components/RupiahInput";
+import { getTomorrowDateInputValue, isFutureDateInput } from "../utils/dateInput";
 
 const JAKARTA_AREAS = [
   "Jakarta Pusat",
@@ -20,6 +21,7 @@ const JAKARTA_AREAS = [
 export default function NewProjectPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const minWeddingDate = getTomorrowDateInputValue();
   const [form, setForm] = useState({
     groomName: "",
     brideName: "",
@@ -40,6 +42,10 @@ export default function NewProjectPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    if (!isFutureDateInput(form.weddingDate)) {
+      setError(t("futureWeddingDateRequired"));
+      return;
+    }
     setLoading(true);
     try {
       const data = await api.createProject({
@@ -111,7 +117,7 @@ export default function NewProjectPage() {
             <div className="grid-2">
               <div className="form-group">
                 <label>{t("weddingDate")}</label>
-                <input type="date" value={form.weddingDate} onChange={(e) => update("weddingDate", e.target.value)} required />
+                <input type="date" value={form.weddingDate} onChange={(e) => update("weddingDate", e.target.value)} required min={minWeddingDate} />
               </div>
               <div className="form-group">
                 <label>{t("totalBudgetRp")}</label>

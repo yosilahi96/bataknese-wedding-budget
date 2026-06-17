@@ -9,6 +9,7 @@ import AlertModal from "../components/AlertModal";
 import SelectedVendorsSummary from "../components/SelectedVendorsSummary";
 import VendorRecommendationPanel from "../components/VendorRecommendationPanel";
 import { buildVendorTypeColorMap } from "../utils/vendorTypeColors";
+import { getTomorrowDateInputValue, isFutureDateInput } from "../utils/dateInput";
 
 function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
@@ -719,6 +720,7 @@ function CategoryModal({ title, initial, eventType, onClose, onSave }) {
 
 function EditProjectModal({ project, onClose, onSave }) {
   const { t } = useLanguage();
+  const minWeddingDate = getTomorrowDateInputValue();
   const [form, setForm] = useState({
     groomName: project.groomName,
     brideName: project.brideName,
@@ -739,6 +741,11 @@ function EditProjectModal({ project, onClose, onSave }) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    if (!isFutureDateInput(form.weddingDate)) {
+      setError(t("futureWeddingDateRequired"));
+      setLoading(false);
+      return;
+    }
     try {
       await onSave({ ...form, totalBudget: Number(form.totalBudget), guestCount: form.guestCount ? Number(form.guestCount) : null });
     } catch (err) {
@@ -777,7 +784,7 @@ function EditProjectModal({ project, onClose, onSave }) {
           <div className="grid-2">
             <div className="form-group">
               <label>{t("weddingDate")}</label>
-              <input type="date" value={form.weddingDate} onChange={(e) => update("weddingDate", e.target.value)} required />
+              <input type="date" value={form.weddingDate} onChange={(e) => update("weddingDate", e.target.value)} required min={minWeddingDate} />
             </div>
             <div className="form-group">
               <label>{t("totalBudgetRp")}</label>
