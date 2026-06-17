@@ -1,54 +1,57 @@
 # Bataknese Wedding Budget Tracker - Jakarta Edition
 
-A full-stack web application to help Bataknese couples living in Jakarta track and manage their wedding budget. Built with React, Express, PostgreSQL, and Prisma.
+A full-stack web application to help Bataknese couples in Jakarta plan, track, and export wedding budgets. Built with React, Express, PostgreSQL, and Prisma.
 
 ## Features
 
-- Create and manage wedding projects with Bataknese ceremony cost categories
-- Default categories: Sinamot, Ulos, Jambar, Gondang, Gedung, Catering, and more
-- Dashboard with budget stats and bar chart visualization
-- Add, edit, delete budget categories with planned vs actual tracking
+- Create and manage wedding projects for Pesta Adat or 3M Ceremony workflows
+- Wedding dates must be future dates when creating or editing project info
+- Budget dashboard with planned vs actual tracking and Recharts visualizations
+- Add, edit, and delete event-scoped budget categories
 - Finalize projects to lock editing
+- Vendor directory, vendor recommendations, vendor comparison, and selected-vendor budget integration
+- Admin tools for vendors, vendor types, master categories, and users
 - Export reports as PDF or Excel
-- JWT authentication
+- Friendly offline/network export error messages
+- English and Bahasa Indonesia language switcher
+- JWT authentication with password change support
 - Responsive mobile-friendly UI
 
 ## Tech Stack
 
-| Layer      | Technology           |
-|------------|---------------------|
-| Frontend   | React 19 + Vite     |
-| Backend    | Node.js + Express   |
-| Database   | PostgreSQL           |
-| ORM        | Prisma               |
-| Charts     | Recharts             |
-| PDF        | PDFKit               |
-| Excel      | ExcelJS              |
-| Auth       | JWT + bcryptjs       |
+| Layer    | Technology         |
+|----------|--------------------|
+| Frontend | React 19 + Vite    |
+| Backend  | Node.js + Express  |
+| Database | PostgreSQL         |
+| ORM      | Prisma             |
+| Charts   | Recharts           |
+| PDF      | PDFKit             |
+| Excel    | ExcelJS            |
+| Auth     | JWT + bcryptjs     |
+| Tests    | Vitest + Jest      |
 
 ## Prerequisites
 
-- **Node.js** >= 18
-- **PostgreSQL** >= 14 (running locally or remotely)
-- **npm** (comes with Node.js)
+- Node.js >= 18
+- PostgreSQL >= 14
+- npm
 
-## Setup Instructions
+## Setup
 
-### 1. Clone and enter the project
+### 1. Enter the project
 
 ```bash
-cd bataknese-wedding-budget
+cd bataknese-wedding-budget-main
 ```
 
-### 2. Set up the database
-
-Create a PostgreSQL database:
+### 2. Create the database
 
 ```bash
 createdb bataknese_wedding
 ```
 
-Or via psql:
+Or with `psql`:
 
 ```sql
 CREATE DATABASE bataknese_wedding;
@@ -61,139 +64,230 @@ cd backend
 cp .env.example .env
 ```
 
-Edit `.env` with your PostgreSQL credentials:
+Edit `backend/.env`:
 
-```
+```env
 DATABASE_URL="postgresql://YOUR_USER:YOUR_PASSWORD@localhost:5432/bataknese_wedding?schema=public"
 JWT_SECRET="pick-a-strong-random-secret"
 PORT=3001
 ```
 
-### 4. Install dependencies and set up the database
+### 4. Install dependencies and prepare the database
+
+From the repository root:
 
 ```bash
-# Backend
+npm run install:all
+cd backend
+npx prisma migrate dev
+npm run db:seed
+```
+
+You can also install each app manually:
+
+```bash
 cd backend
 npm install
-npx prisma migrate dev --name init
-npm run db:seed
 
-# Frontend
 cd ../frontend
 npm install
 ```
 
-### 5. Run the application
+### 5. Run the app
 
-Open two terminal windows:
+Open two terminal windows.
 
-**Terminal 1 - Backend:**
+Backend:
+
 ```bash
 cd backend
 npm run dev
 ```
 
-**Terminal 2 - Frontend:**
+Frontend:
+
 ```bash
 cd frontend
 npm run dev
 ```
 
-The app will be available at **http://localhost:5173**
+The frontend runs at `http://localhost:5173`.
 
-### 6. Demo login
+## Seeded Accounts
 
-Use the seeded demo account:
-- **Email:** demo@example.com
-- **Password:** password123
+Demo user:
+
+- Email: `demo@example.com`
+- Password: `password123`
+
+Admin user:
+
+- Email: `admin@example.com`
+- Password: `admin123`
+
+## Scripts
+
+Root:
+
+| Command | Description |
+|---------|-------------|
+| `npm run install:all` | Install backend and frontend dependencies |
+| `npm run build` | Build the frontend |
+| `npm start` | Start the backend server |
+| `npm run server` | Alias for backend start |
+
+Backend:
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Express with nodemon |
+| `npm start` | Start Express |
+| `npm test` | Run Jest tests |
+| `npm run db:migrate` | Run Prisma migrate dev |
+| `npm run db:seed` | Seed demo data |
+| `npm run db:reset` | Reset and reseed database |
+
+Frontend:
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite |
+| `npm run build` | Build production frontend |
+| `npm run preview` | Preview production build |
+| `npm test` | Run Vitest tests |
 
 ## Project Structure
 
-```
-bataknese-wedding-budget/
-├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma      # Database schema
-│   │   └── seed.js            # Sample seed data
-│   ├── src/
-│   │   ├── middleware/
-│   │   │   └── auth.js        # JWT authentication middleware
-│   │   ├── routes/
-│   │   │   ├── auth.js        # Login, register, me
-│   │   │   ├── projects.js    # CRUD for wedding projects
-│   │   │   ├── categories.js  # CRUD for budget categories
-│   │   │   └── export.js      # PDF and Excel export
-│   │   ├── services/
-│   │   │   ├── pdf.js         # PDF report generation
-│   │   │   └── excel.js       # Excel report generation
-│   │   └── index.js           # Express server entry
-│   ├── .env.example
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── client.js      # API client with auth
-│   │   ├── components/
-│   │   │   └── Navbar.jsx     # Navigation bar
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx # Auth state management
-│   │   ├── pages/
-│   │   │   ├── LoginPage.jsx
-│   │   │   ├── RegisterPage.jsx
-│   │   │   ├── ProjectsPage.jsx
-│   │   │   ├── NewProjectPage.jsx
-│   │   │   └── ProjectDetailPage.jsx
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── index.html
-│   ├── vite.config.js
-│   └── package.json
-└── README.md
+```text
+bataknese-wedding-budget-main/
+|-- backend/
+|   |-- prisma/
+|   |   |-- schema.prisma
+|   |   |-- seed.js
+|   |-- src/
+|   |   |-- app.js
+|   |   |-- index.js
+|   |   |-- lib/
+|   |   |-- middleware/
+|   |   |-- routes/
+|   |   |   |-- admin.js
+|   |   |   |-- auth.js
+|   |   |   |-- categories.js
+|   |   |   |-- export.js
+|   |   |   |-- masterCategories.js
+|   |   |   |-- projectVendors.js
+|   |   |   |-- projects.js
+|   |   |   |-- vendors.js
+|   |   |   |-- vendorTypes.js
+|   |   |-- services/
+|   |   |-- __tests__/
+|   |-- .env.example
+|   |-- package.json
+|-- frontend/
+|   |-- src/
+|   |   |-- api/
+|   |   |-- components/
+|   |   |-- context/
+|   |   |-- i18n/
+|   |   |-- pages/
+|   |   |-- utils/
+|   |   |-- __tests__/
+|   |   |-- App.jsx
+|   |   |-- main.jsx
+|   |   |-- index.css
+|   |-- index.html
+|   |-- vite.config.js
+|   |-- package.json
+|-- package.json
+|-- README.md
 ```
 
 ## API Endpoints
 
+### Health
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+
 ### Authentication
-| Method | Endpoint         | Description       |
-|--------|-----------------|-------------------|
-| POST   | /api/auth/register | Create account  |
-| POST   | /api/auth/login    | Sign in         |
-| GET    | /api/auth/me       | Get current user|
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Create account |
+| POST | `/api/auth/login` | Sign in |
+| GET | `/api/auth/me` | Get current user |
+| PUT | `/api/auth/change-password` | Change password |
 
 ### Wedding Projects
-| Method | Endpoint                     | Description              |
-|--------|------------------------------|--------------------------|
-| GET    | /api/projects                | List user's projects     |
-| GET    | /api/projects/:id            | Get project detail       |
-| POST   | /api/projects                | Create new project       |
-| PUT    | /api/projects/:id            | Update project           |
-| POST   | /api/projects/:id/finalize   | Finalize (lock) project  |
-| DELETE | /api/projects/:id            | Delete project           |
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects` | List user's projects |
+| GET | `/api/projects/:id` | Get project detail |
+| POST | `/api/projects` | Create project |
+| PUT | `/api/projects/:id` | Update project |
+| POST | `/api/projects/:id/finalize` | Finalize project |
+| DELETE | `/api/projects/:id` | Delete project |
 
 ### Budget Categories
-| Method | Endpoint                                    | Description        |
-|--------|---------------------------------------------|--------------------|
-| POST   | /api/projects/:projectId/categories         | Add category       |
-| PUT    | /api/projects/:projectId/categories/:id     | Update category    |
-| DELETE | /api/projects/:projectId/categories/:id     | Delete category    |
 
-### Export
-| Method | Endpoint                          | Description      |
-|--------|-----------------------------------|------------------|
-| GET    | /api/projects/:id/export/pdf      | Download PDF     |
-| GET    | /api/projects/:id/export/excel    | Download Excel   |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/projects/:projectId/events/:eventId/categories` | Add category |
+| PUT | `/api/projects/:projectId/events/:eventId/categories/:id` | Update category |
+| DELETE | `/api/projects/:projectId/events/:eventId/categories/:id` | Delete category |
 
-## Default Bataknese Wedding Categories
+### Exports
 
-1. **Sinamot** (Bride Price) - Traditional marriage payment
-2. **Ulos** (Traditional Cloth) - Sacred Batak textiles
-3. **Jambar** (Ceremonial Gifts) - Tulang, hata, juhut portions
-4. **Gondang** (Traditional Music) - Gondang sabangunan ensemble
-5. **Gedung** (Venue - Jakarta) - Wedding venue and decoration
-6. **Catering** - Food including traditional dishes (arsik, saksang)
-7. **Dokumentasi** (Photo & Video) - Wedding documentation
-8. **Wedding Organizer** - Full WO service
-9. **Transport** - Guest shuttle and logistics
-10. **Souvenir** - Wedding favors
-11. **Others** - Miscellaneous / customizable
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects/:id/export/pdf` | Download PDF |
+| GET | `/api/projects/:id/export/excel` | Download Excel |
+
+### Vendors
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/vendors` | List vendors with optional filters |
+| GET | `/api/vendors/:id` | Get vendor detail |
+| GET | `/api/vendors/recommend/:projectId` | Get recommendations for a project |
+| GET | `/api/vendor-types` | List vendor types |
+| GET | `/api/master-categories?eventType=PESTA_ADAT` | List master categories |
+
+### Project Vendors
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects/:projectId/vendors` | List selected project vendors |
+| POST | `/api/projects/:projectId/vendors` | Add vendor to project |
+| DELETE | `/api/projects/:projectId/vendors/:vendorId` | Remove vendor from project |
+| POST | `/api/projects/:projectId/vendors/:vendorId/add-to-budget` | Add vendor estimate to matching budget category |
+
+### Admin
+
+Admin endpoints require an authenticated admin user.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/admin/vendors` | Create vendor |
+| PUT | `/api/admin/vendors/:id` | Update vendor |
+| DELETE | `/api/admin/vendors/:id` | Delete vendor |
+| POST | `/api/admin/vendor-types` | Create vendor type |
+| PUT | `/api/admin/vendor-types/:id` | Update vendor type |
+| DELETE | `/api/admin/vendor-types/:id` | Delete vendor type |
+| POST | `/api/admin/master-categories` | Create master category |
+| PUT | `/api/admin/master-categories/:id` | Update master category |
+| DELETE | `/api/admin/master-categories/:id` | Delete master category |
+| GET | `/api/admin/users` | List users |
+| POST | `/api/admin/users` | Create user |
+| PUT | `/api/admin/users/:id` | Update user |
+| PUT | `/api/admin/users/:id/reset-password` | Reset user password |
+| DELETE | `/api/admin/users/:id` | Delete user |
+
+## Notes
+
+- New and edited wedding projects must use a future wedding date.
+- The frontend API client maps browser network failures, including offline export attempts, to user-friendly messages.
+- The language selector currently covers the main user budget/export flow; some admin screens may still include English copy.
+- The seed script creates vendor types, master budget categories, sample vendors, a demo user, and an admin user.
