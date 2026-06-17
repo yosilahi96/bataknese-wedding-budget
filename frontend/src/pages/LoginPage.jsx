@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../i18n/LanguageContext";
+import LanguageSelect from "../components/LanguageSelect";
 import "./LoginPage.css";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,7 +20,7 @@ export default function LoginPage() {
     setEmail(value);
     setError("");
     if (value && !emailPattern.test(value)) {
-      setEmailError("Please enter a valid email address");
+      setEmailError(t("validEmail"));
     } else {
       setEmailError("");
     }
@@ -33,7 +36,7 @@ export default function LoginPage() {
     setError("");
 
     if (!emailPattern.test(email)) {
-      setEmailError("Please enter a valid email address");
+      setEmailError(t("validEmail"));
       return;
     }
 
@@ -50,12 +53,16 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-card">
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "var(--sp-4)" }}>
+          <LanguageSelect />
+        </div>
+
         {/* Brand */}
         <div className="login-brand">
           <div className="login-logo">BW</div>
-          <h1 className="login-title">Welcome Back</h1>
+          <h1 className="login-title">{t("welcomeBack")}</h1>
           <p className="login-subtitle">
-            Bataknese Wedding Financial Control System
+            {t("loginSubtitle")}
           </p>
         </div>
 
@@ -75,7 +82,7 @@ export default function LoginPage() {
         <form className="login-form" onSubmit={handleSubmit}>
           {/* Email */}
           <div className="login-field">
-            <label className="login-field-label">Email</label>
+            <label className="login-field-label">{t("email")}</label>
             <div className="login-input-wrapper">
               <input
                 type="email"
@@ -100,13 +107,13 @@ export default function LoginPage() {
 
           {/* Password */}
           <div className="login-field">
-            <label className="login-field-label">Password</label>
+            <label className="login-field-label">{t("password")}</label>
             <div className="login-input-wrapper">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => handlePasswordChange(e.target.value)}
-                placeholder="Enter your secure password"
+                placeholder={t("securePasswordPlaceholder")}
                 required
                 style={{ paddingRight: "2.5rem" }}
               />
@@ -115,7 +122,7 @@ export default function LoginPage() {
                 className="login-pw-toggle"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? t("hidePassword") : t("showPassword")}
               >
                 {showPassword ? (
                   /* Eye-off icon */
@@ -145,17 +152,17 @@ export default function LoginPage() {
             {loading ? (
               <>
                 <span className="login-spinner" />
-                Signing in...
+                {t("signingIn")}
               </>
             ) : (
-              "Sign In to Dashboard"
+              t("signInDashboard")
             )}
           </button>
         </form>
 
         {/* Invite-only note */}
         <p className="login-invite-note">
-          Access provided by Admin
+          {t("accessProvided")}
         </p>
 
         {/* Divider */}
@@ -170,7 +177,7 @@ export default function LoginPage() {
             </svg>
           </span>
           <span className="login-security-text">
-            <strong>Secure Login</strong> — Your wedding data is encrypted and private.
+            <strong>{t("secureLogin")}</strong> - {t("secureLoginText")}
           </span>
         </div>
       </div>

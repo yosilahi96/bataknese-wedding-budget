@@ -2,12 +2,14 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell, CartesianGrid } from "recharts";
 import { api } from "../api/client";
+import { useLanguage } from "../i18n/LanguageContext";
 
 function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
 }
 
 function BudgetComparisonChart({ projects }) {
+  const { t } = useLanguage();
   const data = useMemo(() => {
     const pestaAdat = { planned: 0, spent: 0, count: 0 };
     const threeM = { planned: 0, spent: 0, count: 0 };
@@ -33,10 +35,10 @@ function BudgetComparisonChart({ projects }) {
 
   const chartData = [];
   if (hasPestaAdat) {
-    chartData.push({ name: "Pesta Adat", Planned: data.pestaAdat.planned, Spent: data.pestaAdat.spent });
+    chartData.push({ name: "Pesta Adat", [t("planned")]: data.pestaAdat.planned, [t("spent")]: data.pestaAdat.spent });
   }
   if (hasThreeM) {
-    chartData.push({ name: "3M Ceremony", Planned: data.threeM.planned, Spent: data.threeM.spent });
+    chartData.push({ name: t("ceremony3M"), [t("planned")]: data.threeM.planned, [t("spent")]: data.threeM.spent });
   }
 
   const pestaAdatDiff = data.pestaAdat.planned - data.pestaAdat.spent;
@@ -48,11 +50,11 @@ function BudgetComparisonChart({ projects }) {
     <div className="card fade-in" style={{ marginBottom: "var(--sp-8)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-6)" }}>
         <div>
-          <h3 style={{ fontSize: "1rem", fontWeight: 600, letterSpacing: "-0.01em" }}>Budget Overview</h3>
-          <p style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "2px" }}>Pesta Adat vs 3M comparison</p>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, letterSpacing: "-0.01em" }}>{t("budgetOverview")}</h3>
+          <p style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "2px" }}>{t("budgetComparison")}</p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 500 }}>Total Budget</div>
+          <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 500 }}>{t("totalBudget")}</div>
           <div className="currency-lg" style={{ color: "var(--text)" }}>{formatRupiah(totalBudget)}</div>
         </div>
       </div>
@@ -66,20 +68,20 @@ function BudgetComparisonChart({ projects }) {
                 Pesta Adat
               </span>
               <span className="badge badge-neutral" style={{ fontSize: "0.625rem" }}>
-                {data.pestaAdat.count} project{data.pestaAdat.count > 1 ? "s" : ""}
+                {t("projectCount", { count: data.pestaAdat.count, plural: data.pestaAdat.count > 1 ? "s" : "" })}
               </span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "var(--sp-4)" }}>
               <div>
-                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Planned</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>{t("planned")}</div>
                 <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{formatRupiah(data.pestaAdat.planned)}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Spent</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>{t("spent")}</div>
                 <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{formatRupiah(data.pestaAdat.spent)}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Diff</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>{t("diff")}</div>
                 <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600, color: pestaAdatDiff >= 0 ? "var(--success)" : "var(--danger)" }}>
                   {pestaAdatDiff >= 0 ? "+" : ""}{formatRupiah(pestaAdatDiff)}
                 </div>
@@ -91,23 +93,23 @@ function BudgetComparisonChart({ projects }) {
           <div className="sub-card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-3)" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>
-                3M Ceremony
+                {t("ceremony3M")}
               </span>
               <span className="badge badge-neutral" style={{ fontSize: "0.625rem" }}>
-                {data.threeM.count} project{data.threeM.count > 1 ? "s" : ""}
+                {t("projectCount", { count: data.threeM.count, plural: data.threeM.count > 1 ? "s" : "" })}
               </span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "var(--sp-4)" }}>
               <div>
-                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Planned</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>{t("planned")}</div>
                 <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{formatRupiah(data.threeM.planned)}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Spent</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>{t("spent")}</div>
                 <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{formatRupiah(data.threeM.spent)}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>Diff</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", marginBottom: "2px" }}>{t("diff")}</div>
                 <div className="currency" style={{ fontSize: "0.875rem", fontWeight: 600, color: threeMDiff >= 0 ? "var(--success)" : "var(--danger)" }}>
                   {threeMDiff >= 0 ? "+" : ""}{formatRupiah(threeMDiff)}
                 </div>
@@ -129,10 +131,10 @@ function BudgetComparisonChart({ projects }) {
               contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
             />
             <Legend wrapperStyle={{ fontSize: "0.75rem", paddingTop: "8px" }} />
-            <Bar dataKey="Planned" fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
-            <Bar dataKey="Spent" radius={[6, 6, 0, 0]}>
+            <Bar dataKey={t("planned")} fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
+            <Bar dataKey={t("spent")} radius={[6, 6, 0, 0]}>
               {chartData.map((entry, idx) => (
-                <Cell key={idx} fill={entry.Spent > entry.Planned ? "var(--danger)" : "var(--primary)"} />
+                <Cell key={idx} fill={entry[t("spent")] > entry[t("planned")] ? "var(--danger)" : "var(--primary)"} />
               ))}
             </Bar>
           </BarChart>
@@ -142,10 +144,10 @@ function BudgetComparisonChart({ projects }) {
       {/* Stacked percentage comparison */}
       {hasPestaAdat && hasThreeM && (
         <div style={{ marginTop: "var(--sp-4)", paddingTop: "var(--sp-4)", borderTop: "1px solid var(--border-light)" }}>
-          <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 500, marginBottom: "var(--sp-3)" }}>Spending Progress</div>
+          <div style={{ fontSize: "0.6875rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 500, marginBottom: "var(--sp-3)" }}>{t("spendingProgress")}</div>
           {[
             { label: "Pesta Adat", planned: data.pestaAdat.planned, spent: data.pestaAdat.spent },
-            { label: "3M Ceremony", planned: data.threeM.planned, spent: data.threeM.spent },
+            { label: t("ceremony3M"), planned: data.threeM.planned, spent: data.threeM.spent },
           ].map((item) => {
             const pct = item.planned > 0 ? (item.spent / item.planned) * 100 : 0;
             return (
@@ -173,6 +175,7 @@ function BudgetComparisonChart({ projects }) {
 }
 
 export default function ProjectsPage() {
+  const { t } = useLanguage();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -185,20 +188,20 @@ export default function ProjectsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="loading-state">Loading projects...</div>;
+  if (loading) return <div className="loading-state">{t("loadingProjects")}</div>;
 
   return (
     <div className="fade-in">
       <div className="page-header">
         <div>
-          <h1 className="page-title">My Wedding Projects</h1>
-          <p className="page-subtitle">Track and manage your wedding budgets</p>
+          <h1 className="page-title">{t("myWeddingProjects")}</h1>
+          <p className="page-subtitle">{t("projectsSubtitle")}</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate("/projects/new")} style={{ gap: "var(--sp-2)" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          New Project
+          {t("newProject")}
         </button>
       </div>
 
@@ -212,8 +215,8 @@ export default function ProjectsPage() {
             <line x1="12" y1="18" x2="12" y2="12" />
             <line x1="9" y1="15" x2="15" y2="15" />
           </svg>
-          <p>No wedding projects yet. Create your first one to get started.</p>
-          <Link to="/projects/new" className="btn btn-primary btn-lg">Create Your First Project</Link>
+          <p>{t("noProjects")}</p>
+          <Link to="/projects/new" className="btn btn-primary btn-lg">{t("createFirstProject")}</Link>
         </div>
       ) : (
         <div style={{ display: "grid", gap: "var(--sp-3)" }}>
@@ -236,13 +239,13 @@ export default function ProjectsPage() {
                           {p.groomName} & {p.brideName}
                         </h3>
                         <span className={`badge ${p.isFinalized ? "badge-success" : "badge-warning"}`}>
-                          {p.isFinalized ? "Finalized" : "In Progress"}
+                          {p.isFinalized ? t("finalized") : t("inProgress")}
                         </span>
                       </div>
                       <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
                         {new Date(p.weddingDate).toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })}
                         <span style={{ margin: "0 var(--sp-2)", color: "var(--gray-300)" }}>/</span>
-                        {p.eventType === "THREE_M" ? "3M Ceremony" : "Pesta Adat"}
+                        {p.eventType === "THREE_M" ? t("ceremony3M") : "Pesta Adat"}
                       </p>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -250,7 +253,7 @@ export default function ProjectsPage() {
                         {formatRupiah(p.totalBudget)}
                       </div>
                       <div className="currency" style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "2px" }}>
-                        {pct.toFixed(1)}% used
+                        {pct.toFixed(1)}% {t("used")}
                       </div>
                     </div>
                   </div>

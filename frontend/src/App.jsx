@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { useLanguage } from "./i18n/LanguageContext";
 import Navbar from "./components/Navbar";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -14,16 +15,18 @@ import AdminVendorTypesPage from "./pages/AdminVendorTypesPage";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="loading-state">Loading...</div>;
+  const { t } = useLanguage();
+  if (loading) return <div className="loading-state">{t("loading")}</div>;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
 export default function App() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
 
   if (loading) {
-    return <div className="loading-state">Loading...</div>;
+    return <div className="loading-state">{t("loading")}</div>;
   }
 
   return (

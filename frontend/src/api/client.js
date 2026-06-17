@@ -1,4 +1,16 @@
 const BASE_URL = "/api";
+const NETWORK_ERROR_MESSAGES = {
+  en: "Network issue detected. Please check your internet connection and try again.",
+  id: "Masalah jaringan terdeteksi. Periksa koneksi internet Anda lalu coba lagi.",
+};
+
+function getNetworkErrorMessage() {
+  return NETWORK_ERROR_MESSAGES[localStorage.getItem("language")] || NETWORK_ERROR_MESSAGES.en;
+}
+
+function isNetworkError(err) {
+  return err instanceof TypeError || err?.message === "Failed to fetch";
+}
 
 async function request(path, options = {}) {
   const token = localStorage.getItem("token");
@@ -8,7 +20,15 @@ async function request(path, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  } catch (err) {
+    if (!navigator.onLine || isNetworkError(err)) {
+      throw new Error(getNetworkErrorMessage());
+    }
+    throw err;
+  }
 
   if (res.status === 401 && !path.startsWith("/auth/")) {
     localStorage.removeItem("token");

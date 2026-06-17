@@ -113,6 +113,27 @@ describe("API Client", () => {
     expect(result).toBeInstanceOf(Blob);
   });
 
+  it("should show a network message when export fetch fails offline", async () => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
+
+    const { api } = await import("../../api/client.js");
+
+    await expect(api.exportPDF("project-1")).rejects.toThrow(
+      "Network issue detected. Please check your internet connection and try again."
+    );
+  });
+
+  it("should show an Indonesian network message when Indonesian is selected", async () => {
+    localStorageMock.store.language = "id";
+    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
+
+    const { api } = await import("../../api/client.js");
+
+    await expect(api.exportExcel("project-1")).rejects.toThrow(
+      "Masalah jaringan terdeteksi. Periksa koneksi internet Anda lalu coba lagi."
+    );
+  });
+
   it("should return JSON for normal responses", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,

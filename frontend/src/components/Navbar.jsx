@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../i18n/LanguageContext";
 import { api } from "../api/client";
 import AlertModal from "./AlertModal";
+import LanguageSelect from "./LanguageSelect";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [pwSaving, setPwSaving] = useState(false);
@@ -25,7 +28,7 @@ export default function Navbar() {
     setPwError("");
 
     if (pwForm.newPassword !== pwForm.confirmPassword) {
-      setPwError("New passwords do not match");
+      setPwError(t("passwordMismatch"));
       return;
     }
 
@@ -37,8 +40,8 @@ export default function Navbar() {
       });
       setShowPasswordModal(false);
       setAlertModal({
-        title: "Password Changed",
-        message: "Your password has been changed successfully.",
+        title: t("passwordChanged"),
+        message: t("passwordChangedMessage"),
         type: "success",
       });
     } catch (err) {
@@ -62,21 +65,22 @@ export default function Navbar() {
               </span>
             </Link>
             <nav style={{ display: "flex", alignItems: "center", gap: "var(--sp-1)", marginLeft: "var(--sp-4)" }}>
-              <Link to="/vendors" className="navbar-link">Vendors</Link>
+              <Link to="/vendors" className="navbar-link">{t("navVendors")}</Link>
               {user?.isAdmin && (
                 <>
-                  <Link to="/admin/vendors" className="navbar-link">Admin Vendors</Link>
-                  <Link to="/admin/vendor-types" className="navbar-link">Vendor Types</Link>
-                  <Link to="/admin/master-categories" className="navbar-link">Categories</Link>
-                  <Link to="/admin/users" className="navbar-link">Users</Link>
+                  <Link to="/admin/vendors" className="navbar-link">{t("navAdminVendors")}</Link>
+                  <Link to="/admin/vendor-types" className="navbar-link">{t("navVendorTypes")}</Link>
+                  <Link to="/admin/master-categories" className="navbar-link">{t("navCategories")}</Link>
+                  <Link to="/admin/users" className="navbar-link">{t("navUsers")}</Link>
                 </>
               )}
             </nav>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)" }}>
+            <LanguageSelect compact />
             <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8125rem" }}>{user?.name}</span>
-            <button onClick={openChangePassword} className="navbar-btn">Password</button>
-            <button onClick={logout} className="navbar-btn">Logout</button>
+            <button onClick={openChangePassword} className="navbar-btn">{t("navPassword")}</button>
+            <button onClick={logout} className="navbar-btn">{t("navLogout")}</button>
           </div>
         </div>
       </nav>
@@ -84,18 +88,18 @@ export default function Navbar() {
       {showPasswordModal && (
         <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-            <h3>Change Password</h3>
+            <h3>{t("changePassword")}</h3>
             {pwError && <div className="inline-error">{pwError}</div>}
             <form onSubmit={handleChangePassword}>
               <div className="form-group">
-                <label>Current Password</label>
+                <label>{t("currentPassword")}</label>
                 <div style={{ position: "relative" }}>
                   <input
                     type={showPw.current ? "text" : "password"}
                     value={pwForm.currentPassword}
                     onChange={(e) => setPwForm((f) => ({ ...f, currentPassword: e.target.value }))}
                     required
-                    placeholder="Enter current password"
+                    placeholder={t("enterCurrentPassword")}
                     style={{ paddingRight: "2.5rem" }}
                   />
                   <button
@@ -117,7 +121,7 @@ export default function Navbar() {
                 </div>
               </div>
               <div className="form-group">
-                <label>New Password</label>
+                <label>{t("newPassword")}</label>
                 <div style={{ position: "relative" }}>
                   <input
                     type={showPw.new ? "text" : "password"}
@@ -125,7 +129,7 @@ export default function Navbar() {
                     onChange={(e) => setPwForm((f) => ({ ...f, newPassword: e.target.value }))}
                     required
                     minLength={6}
-                    placeholder="Minimum 6 characters"
+                    placeholder={t("minimumCharacters")}
                     style={{ paddingRight: "2.5rem" }}
                   />
                   <button
@@ -147,7 +151,7 @@ export default function Navbar() {
                 </div>
               </div>
               <div className="form-group">
-                <label>Confirm New Password</label>
+                <label>{t("confirmNewPassword")}</label>
                 <div style={{ position: "relative" }}>
                   <input
                     type={showPw.confirm ? "text" : "password"}
@@ -155,7 +159,7 @@ export default function Navbar() {
                     onChange={(e) => setPwForm((f) => ({ ...f, confirmPassword: e.target.value }))}
                     required
                     minLength={6}
-                    placeholder="Re-enter new password"
+                    placeholder={t("reenterNewPassword")}
                     style={{ paddingRight: "2.5rem" }}
                   />
                   <button
@@ -177,9 +181,9 @@ export default function Navbar() {
                 </div>
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn btn-outline" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-outline" onClick={() => setShowPasswordModal(false)}>{t("cancel")}</button>
                 <button type="submit" className="btn btn-primary" disabled={pwSaving}>
-                  {pwSaving ? "Saving..." : "Change Password"}
+                  {pwSaving ? t("saving") : t("changePassword")}
                 </button>
               </div>
             </form>

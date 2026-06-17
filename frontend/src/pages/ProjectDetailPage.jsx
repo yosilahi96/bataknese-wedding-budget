@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 import { api } from "../api/client";
+import { useLanguage } from "../i18n/LanguageContext";
 import RupiahInput from "../components/RupiahInput";
 import ConfirmModal from "../components/ConfirmModal";
 import AlertModal from "../components/AlertModal";
@@ -25,6 +26,7 @@ function downloadBlob(blob, filename) {
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeEventTab, setActiveEventTab] = useState(null);
@@ -61,8 +63,8 @@ export default function ProjectDetailPage() {
     }
   }, [project, activeEventTab]);
 
-  if (loading) return <div className="loading-state">Loading project...</div>;
-  if (!project) return <div className="loading-state">Project not found.</div>;
+  if (loading) return <div className="loading-state">{t("loadingProject")}</div>;
+  if (!project) return <div className="loading-state">{t("projectNotFound")}</div>;
 
   const events = project.events || [];
   const allCategories = events.flatMap((e) => e.categories || []);
@@ -77,31 +79,31 @@ export default function ProjectDetailPage() {
 
   const eventComparisonData = events.map((evt) => ({
     name: evt.name,
-    Planned: (evt.categories || []).reduce((s, c) => s + Number(c.plannedBudget), 0),
-    Actual: (evt.categories || []).reduce((s, c) => s + Number(c.actualCost), 0),
+    [t("planned")]: (evt.categories || []).reduce((s, c) => s + Number(c.plannedBudget), 0),
+    [t("actual")]: (evt.categories || []).reduce((s, c) => s + Number(c.actualCost), 0),
   }));
 
   const activeCategoryChartData = activeCategories.map((c) => ({
     name: c.name.length > 15 ? c.name.slice(0, 13) + "..." : c.name,
-    Planned: Number(c.plannedBudget),
-    Actual: Number(c.actualCost),
+    [t("planned")]: Number(c.plannedBudget),
+    [t("actual")]: Number(c.actualCost),
   }));
 
   function handleFinalize() {
     setConfirmAction({
-      title: "Finalize Project",
-      message: "Are you sure you want to finalize this project? All editing will be permanently locked.",
-      confirmLabel: "Finalize",
+      title: t("finalizeProject"),
+      message: t("finalizeProjectMessage"),
+      confirmLabel: t("finalize"),
       confirmStyle: "primary",
       onConfirm: async () => {
         try {
           const data = await api.finalizeProject(id);
           setProject(data.project);
           setConfirmAction(null);
-          setAlertModal({ title: "Project Finalized", message: "Project has been finalized successfully.", type: "success" });
+          setAlertModal({ title: t("projectFinalized"), message: t("projectFinalizedMessage"), type: "success" });
         } catch (err) {
           setConfirmAction(null);
-          setAlertModal({ title: "Finalize Failed", message: err.message, type: "error" });
+          setAlertModal({ title: t("finalizeFailed"), message: err.message, type: "error" });
         }
       },
     });
@@ -109,9 +111,9 @@ export default function ProjectDetailPage() {
 
   function handleDelete() {
     setConfirmAction({
-      title: "Delete Project",
-      message: "Are you sure you want to delete this project permanently? This action cannot be undone and all budget data will be lost.",
-      confirmLabel: "Delete Project",
+      title: t("deleteProject"),
+      message: t("deleteProjectMessage"),
+      confirmLabel: t("deleteProject"),
       confirmStyle: "danger",
       onConfirm: async () => {
         try {
@@ -119,7 +121,7 @@ export default function ProjectDetailPage() {
           navigate("/");
         } catch (err) {
           setConfirmAction(null);
-          setAlertModal({ title: "Delete Failed", message: err.message, type: "error" });
+          setAlertModal({ title: t("deleteFailed"), message: err.message, type: "error" });
         }
       },
     });
@@ -131,7 +133,7 @@ export default function ProjectDetailPage() {
       const blob = await api.exportPDF(id);
       downloadBlob(blob, `wedding-budget-${project.groomName}-${project.brideName}.pdf`);
     } catch (err) {
-      setAlertModal({ title: "Export Failed", message: err.message, type: "error" });
+      setAlertModal({ title: t("exportFailed"), message: err.message, type: "error" });
     } finally {
       setExporting("");
     }
@@ -143,7 +145,7 @@ export default function ProjectDetailPage() {
       const blob = await api.exportExcel(id);
       downloadBlob(blob, `wedding-budget-${project.groomName}-${project.brideName}.xlsx`);
     } catch (err) {
-      setAlertModal({ title: "Export Failed", message: err.message, type: "error" });
+      setAlertModal({ title: t("exportFailed"), message: err.message, type: "error" });
     } finally {
       setExporting("");
     }
@@ -152,19 +154,19 @@ export default function ProjectDetailPage() {
   function handleDeleteCategory(catId) {
     if (!activeEvent) return;
     setConfirmAction({
-      title: "Delete Category",
-      message: "Are you sure you want to delete this budget category? This action cannot be undone.",
-      confirmLabel: "Delete",
+      title: t("deleteCategory"),
+      message: t("deleteCategoryMessage"),
+      confirmLabel: t("delete"),
       confirmStyle: "danger",
       onConfirm: async () => {
         try {
           await api.deleteCategory(id, activeEvent.id, catId);
           setConfirmAction(null);
           loadProject();
-          setAlertModal({ title: "Category Deleted", message: "Budget category has been deleted.", type: "success" });
+          setAlertModal({ title: t("categoryDeleted"), message: t("categoryDeletedMessage"), type: "success" });
         } catch (err) {
           setConfirmAction(null);
-          setAlertModal({ title: "Delete Failed", message: err.message, type: "error" });
+          setAlertModal({ title: t("deleteFailed"), message: err.message, type: "error" });
         }
       },
     });
@@ -187,7 +189,7 @@ export default function ProjectDetailPage() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Back to Projects
+          {t("backToProjects")}
         </button>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "var(--sp-4)" }}>
           <div>
@@ -202,8 +204,8 @@ export default function ProjectDetailPage() {
           <div style={{ display: "flex", gap: "var(--sp-2)", flexWrap: "wrap" }}>
             {!project.isFinalized && (
               <>
-                <button className="btn btn-outline btn-sm" onClick={() => setShowEditProjectModal(true)}>Edit Info</button>
-                <button className="btn btn-primary btn-sm" onClick={handleFinalize}>Finalize</button>
+                <button className="btn btn-outline btn-sm" onClick={() => setShowEditProjectModal(true)}>{t("editInfo")}</button>
+                <button className="btn btn-primary btn-sm" onClick={handleFinalize}>{t("finalize")}</button>
               </>
             )}
             <button className="btn btn-outline btn-sm" onClick={handleExportPDF} disabled={!!exporting}>
@@ -212,7 +214,7 @@ export default function ProjectDetailPage() {
             <button className="btn btn-outline btn-sm" onClick={handleExportExcel} disabled={!!exporting}>
               {exporting === "excel" ? "..." : "Excel"}
             </button>
-            <button className="btn btn-danger btn-sm" onClick={handleDelete}>Delete</button>
+            <button className="btn btn-danger btn-sm" onClick={handleDelete}>{t("delete")}</button>
           </div>
         </div>
       </div>
@@ -220,19 +222,19 @@ export default function ProjectDetailPage() {
       {/* Combined Stats — Primary budget is visual anchor */}
       <div className="stats-grid">
         <div className="stat-card stat-card-primary">
-          <div className="stat-label">Total Budget</div>
+          <div className="stat-label">{t("totalBudget")}</div>
           <div className="stat-value currency-xl">{formatRupiah(project.totalBudget)}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Total Spent</div>
+          <div className="stat-label">{t("totalSpent")}</div>
           <div className="stat-value currency" style={{ color: pctUsed > 100 ? "var(--danger)" : undefined }}>{formatRupiah(totalActual)}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Remaining</div>
+          <div className="stat-label">{t("remaining")}</div>
           <div className="stat-value currency" style={{ color: remaining < 0 ? "var(--danger)" : "var(--success)" }}>{formatRupiah(remaining)}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">% Used</div>
+          <div className="stat-label">{t("percentUsed")}</div>
           <div className="stat-value">{pctUsed.toFixed(1)}%</div>
           <div className="progress-bar" style={{ marginTop: "var(--sp-3)" }}>
             <div className="fill" style={{ width: `${Math.min(pctUsed, 100)}%`, background: pctUsed > 100 ? "var(--danger)" : pctUsed > 80 ? "var(--warning)" : "var(--primary)" }} />
@@ -240,7 +242,7 @@ export default function ProjectDetailPage() {
         </div>
         {project.guestCount && (
           <div className="stat-card">
-            <div className="stat-label">Guests</div>
+            <div className="stat-label">{t("guests")}</div>
             <div className="stat-value">{project.guestCount}</div>
           </div>
         )}
@@ -257,7 +259,7 @@ export default function ProjectDetailPage() {
               <div className="stat-label">{evt.name}</div>
               <div className="stat-value currency">{formatRupiah(evtActual)}</div>
               <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "var(--sp-1)" }}>
-                of {formatRupiah(evtPlanned)} planned ({evtPct.toFixed(1)}%)
+                {t("ofPlanned", { amount: formatRupiah(evtPlanned), percent: evtPct.toFixed(1) })}
               </div>
               <div className="progress-bar" style={{ marginTop: "var(--sp-2)" }}>
                 <div className="fill" style={{ width: `${Math.min(evtPct, 100)}%`, background: evtPct > 100 ? "var(--danger)" : evtPct > 80 ? "var(--warning)" : "var(--primary)" }} />
@@ -270,7 +272,7 @@ export default function ProjectDetailPage() {
       {/* Event Comparison Chart */}
       {events.length > 1 && (
         <div className="card" style={{ marginBottom: "var(--sp-8)" }}>
-          <h3 className="section-title">Event Spending Comparison</h3>
+          <h3 className="section-title">{t("eventSpendingComparison")}</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={eventComparisonData} margin={{ top: 8, right: 16, left: 16, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" vertical={false} />
@@ -281,8 +283,8 @@ export default function ProjectDetailPage() {
                 contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
               />
               <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 12, fontSize: "0.75rem" }} />
-              <Bar dataKey="Planned" fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="Actual" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey={t("planned")} fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey={t("actual")} fill="var(--primary)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -339,7 +341,7 @@ export default function ProjectDetailPage() {
       {/* Active Event Category Chart */}
       {activeCategories.length > 0 && (
         <div className="card" style={{ marginBottom: "var(--sp-4)" }}>
-          <h3 className="section-title">{activeEvent?.name} - Budget vs Actual</h3>
+          <h3 className="section-title">{t("budgetVsActual", { name: activeEvent?.name })}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={activeCategoryChartData} margin={{ top: 8, right: 16, left: 16, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" vertical={false} />
@@ -350,8 +352,8 @@ export default function ProjectDetailPage() {
                 contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
               />
               <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 12, fontSize: "0.75rem" }} />
-              <Bar dataKey="Planned" fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="Actual" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey={t("planned")} fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey={t("actual")} fill="var(--primary)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -360,13 +362,13 @@ export default function ProjectDetailPage() {
       {/* Active Event Categories Table */}
       <div className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-5)" }}>
-          <h3 className="section-title" style={{ marginBottom: 0 }}>{activeEvent?.name} - Categories</h3>
+          <h3 className="section-title" style={{ marginBottom: 0 }}>{t("categoriesTitle", { name: activeEvent?.name })}</h3>
           {!project.isFinalized && (
             <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)} style={{ gap: "var(--sp-1)" }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              Add Category
+              {t("addCategory")}
             </button>
           )}
         </div>
@@ -375,12 +377,12 @@ export default function ProjectDetailPage() {
           <table>
             <thead>
               <tr>
-                <th>Category</th>
-                <th style={{ textAlign: "right" }}>Planned</th>
-                <th style={{ textAlign: "right" }}>Actual</th>
-                <th style={{ textAlign: "right" }}>Diff</th>
-                <th>Notes</th>
-                {!project.isFinalized && <th style={{ width: 100 }}>Actions</th>}
+                <th>{t("category")}</th>
+                <th style={{ textAlign: "right" }}>{t("planned")}</th>
+                <th style={{ textAlign: "right" }}>{t("actual")}</th>
+                <th style={{ textAlign: "right" }}>{t("diff")}</th>
+                <th>{t("notes")}</th>
+                {!project.isFinalized && <th style={{ width: 100 }}>{t("actions")}</th>}
               </tr>
             </thead>
             <tbody>
@@ -403,7 +405,7 @@ export default function ProjectDetailPage() {
                           <button
                             className="btn btn-ghost btn-sm"
                             onClick={() => setEditingCategory(cat)}
-                            title="Edit"
+                            title={t("edit")}
                             style={{ padding: "4px 6px", height: "auto" }}
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -414,7 +416,7 @@ export default function ProjectDetailPage() {
                           <button
                             className="btn btn-ghost btn-sm"
                             onClick={() => handleDeleteCategory(cat.id)}
-                            title="Delete"
+                            title={t("delete")}
                             style={{ padding: "4px 6px", height: "auto", color: "var(--text-tertiary)" }}
                             onMouseEnter={(e) => e.currentTarget.style.color = "var(--danger)"}
                             onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-tertiary)"}
@@ -434,7 +436,7 @@ export default function ProjectDetailPage() {
                 );
               })}
               <tr style={{ fontWeight: 700, background: "var(--gray-50)" }}>
-                <td style={{ fontSize: "0.8125rem" }}>TOTAL</td>
+                <td style={{ fontSize: "0.8125rem" }}>{t("total")}</td>
                 <td className="currency" style={{ textAlign: "right" }}>{formatRupiah(activeEventPlanned)}</td>
                 <td className="currency" style={{ textAlign: "right" }}>{formatRupiah(activeEventActual)}</td>
                 <td className="currency" style={{ textAlign: "right", color: activeEventPlanned - activeEventActual < 0 ? "var(--danger)" : "var(--success)" }}>
@@ -450,7 +452,7 @@ export default function ProjectDetailPage() {
       {/* Add Category Modal */}
       {showAddModal && activeEvent && (
         <CategoryModal
-          title={`Add Category - ${activeEvent.name}`}
+          title={t("addCategoryTitle", { name: activeEvent.name })}
           initial={{ name: "", plannedBudget: "", actualCost: "", notes: "" }}
           eventType={activeEvent.type}
           onClose={() => setShowAddModal(false)}
@@ -458,7 +460,7 @@ export default function ProjectDetailPage() {
             await api.createCategory(id, activeEvent.id, data);
             loadProject();
             setShowAddModal(false);
-            setAlertModal({ title: "Category Added", message: `"${data.name}" has been added successfully.`, type: "success" });
+            setAlertModal({ title: t("categoryAdded"), message: t("categoryAddedMessage", { name: data.name }), type: "success" });
           }}
         />
       )}
@@ -466,7 +468,7 @@ export default function ProjectDetailPage() {
       {/* Edit Category Modal */}
       {editingCategory && activeEvent && (
         <CategoryModal
-          title={`Edit Category - ${activeEvent.name}`}
+          title={t("editCategoryTitle", { name: activeEvent.name })}
           initial={{
             name: editingCategory.name,
             plannedBudget: Number(editingCategory.plannedBudget),
@@ -479,7 +481,7 @@ export default function ProjectDetailPage() {
             await api.updateCategory(id, activeEvent.id, editingCategory.id, data);
             loadProject();
             setEditingCategory(null);
-            setAlertModal({ title: "Category Updated", message: `"${data.name}" has been updated successfully.`, type: "success" });
+            setAlertModal({ title: t("categoryUpdated"), message: t("categoryUpdatedMessage", { name: data.name }), type: "success" });
           }}
         />
       )}
@@ -493,7 +495,7 @@ export default function ProjectDetailPage() {
             const res = await api.updateProject(id, data);
             setProject(res.project);
             setShowEditProjectModal(false);
-            setAlertModal({ title: "Project Updated", message: "Project info has been updated successfully.", type: "success" });
+            setAlertModal({ title: t("projectUpdated"), message: t("projectUpdatedMessage"), type: "success" });
           }}
         />
       )}
@@ -524,14 +526,14 @@ export default function ProjectDetailPage() {
       {!project.isFinalized && (
         <div className="mobile-vendor-bar">
           <div style={{ fontSize: "0.8125rem" }}>
-            <strong>{(project.vendors || []).length}</strong> vendors
+            <strong>{(project.vendors || []).length}</strong> {t("vendors")}
             <span style={{ color: "var(--gray-300)", margin: "0 var(--sp-2)" }}>/</span>
             <span className="currency">{formatRupiah(
               (project.vendors || []).reduce((s, pv) => s + Number(pv.estimatedCost || pv.vendor?.minPriceEstimate || 0), 0)
             )}</span>
           </div>
           <button className="btn btn-primary btn-sm" onClick={() => setShowMobileDrawer(true)}>
-            View Selected
+            {t("viewSelected")}
           </button>
         </div>
       )}
@@ -549,7 +551,7 @@ export default function ProjectDetailPage() {
               colorMap={vendorTypeColorMap}
             />
             <button className="btn btn-outline" onClick={() => setShowMobileDrawer(false)} style={{ width: "100%", marginTop: "var(--sp-4)" }}>
-              Close
+              {t("close")}
             </button>
           </div>
         </div>
@@ -620,6 +622,7 @@ function CategoryCombobox({ suggestions, value, onChange, placeholder }) {
 }
 
 function CategoryModal({ title, initial, eventType, onClose, onSave }) {
+  const { t } = useLanguage();
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -662,13 +665,13 @@ function CategoryModal({ title, initial, eventType, onClose, onSave }) {
         {error && <div className="inline-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Category Name</label>
+            <label>{t("categoryName")}</label>
             {eventType && suggestions.length > 0 ? (
               <CategoryCombobox
                 suggestions={suggestions}
                 value={form.name}
                 onChange={(val) => update("name", val)}
-                placeholder="Search or type category name..."
+                placeholder={t("categoryPlaceholder")}
               />
             ) : (
               <input type="text" value={form.name} onChange={(e) => update("name", e.target.value)} required maxLength={100} placeholder="e.g. Catering, Dekorasi" />
@@ -680,7 +683,7 @@ function CategoryModal({ title, initial, eventType, onClose, onSave }) {
                 onChange={(e) => update("customName", e.target.value)}
                 required
                 maxLength={100}
-                placeholder="Enter custom category name..."
+                placeholder={t("customCategoryPlaceholder")}
                 style={{ marginTop: "var(--sp-2)" }}
               />
             )}
@@ -692,21 +695,21 @@ function CategoryModal({ title, initial, eventType, onClose, onSave }) {
           </div>
           <div className="grid-2">
             <div className="form-group">
-              <label>Planned Budget (Rp)</label>
+              <label>{t("plannedBudgetRp")}</label>
               <RupiahInput value={form.plannedBudget} onChange={(v) => update("plannedBudget", v)} placeholder="e.g. 50.000.000" />
             </div>
             <div className="form-group">
-              <label>Actual Cost (Rp)</label>
+              <label>{t("actualCostRp")}</label>
               <RupiahInput value={form.actualCost} onChange={(v) => update("actualCost", v)} placeholder="e.g. 45.000.000" />
             </div>
           </div>
           <div className="form-group">
-            <label>Notes</label>
-            <textarea rows="2" value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="e.g. Sudah DP 50%, sisa dilunasi H-7" />
+            <label>{t("notes")}</label>
+            <textarea rows="2" value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder={t("notesPlaceholder")} />
           </div>
           <div className="modal-actions">
-            <button type="button" className="btn btn-outline" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? "Saving..." : "Save"}</button>
+            <button type="button" className="btn btn-outline" onClick={onClose}>{t("cancel")}</button>
+            <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? t("saving") : t("save")}</button>
           </div>
         </form>
       </div>
@@ -715,6 +718,7 @@ function CategoryModal({ title, initial, eventType, onClose, onSave }) {
 }
 
 function EditProjectModal({ project, onClose, onSave }) {
+  const { t } = useLanguage();
   const [form, setForm] = useState({
     groomName: project.groomName,
     brideName: project.brideName,
@@ -747,49 +751,49 @@ function EditProjectModal({ project, onClose, onSave }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Edit Project</h3>
+        <h3>{t("editProject")}</h3>
         {error && <div className="inline-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="grid-2">
             <div className="form-group">
-              <label>Groom Name</label>
+              <label>{t("groomName")}</label>
               <input type="text" value={form.groomName} onChange={(e) => update("groomName", e.target.value)} required />
             </div>
             <div className="form-group">
-              <label>Bride Name</label>
+              <label>{t("brideName")}</label>
               <input type="text" value={form.brideName} onChange={(e) => update("brideName", e.target.value)} required />
             </div>
           </div>
           <div className="grid-2">
             <div className="form-group">
-              <label>Groom Domicile</label>
+              <label>{t("groomDomicile")}</label>
               <input type="text" value={form.groomDomicile} onChange={(e) => update("groomDomicile", e.target.value)} required />
             </div>
             <div className="form-group">
-              <label>Bride Domicile</label>
+              <label>{t("brideDomicile")}</label>
               <input type="text" value={form.brideDomicile} onChange={(e) => update("brideDomicile", e.target.value)} required />
             </div>
           </div>
           <div className="grid-2">
             <div className="form-group">
-              <label>Wedding Date</label>
+              <label>{t("weddingDate")}</label>
               <input type="date" value={form.weddingDate} onChange={(e) => update("weddingDate", e.target.value)} required />
             </div>
             <div className="form-group">
-              <label>Total Budget (Rp)</label>
+              <label>{t("totalBudgetRp")}</label>
               <RupiahInput value={form.totalBudget} onChange={(v) => update("totalBudget", v)} required />
             </div>
           </div>
           <div className="grid-2">
             <div className="form-group">
-              <label>Guest Count (optional)</label>
+              <label>{t("guestCount")}</label>
               <input type="number" value={form.guestCount} onChange={(e) => update("guestCount", e.target.value)} placeholder="e.g. 500" min="1" />
             </div>
             <div />
           </div>
           <div className="modal-actions">
-            <button type="button" className="btn btn-outline" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? "Saving..." : "Save"}</button>
+            <button type="button" className="btn btn-outline" onClick={onClose}>{t("cancel")}</button>
+            <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? t("saving") : t("save")}</button>
           </div>
         </form>
       </div>
