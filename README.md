@@ -204,6 +204,11 @@ bataknese-wedding-budget-main/
 
 ## API Endpoints
 
+Interactive Swagger docs are available after starting the backend:
+
+- Swagger UI: `http://localhost:3001/api-docs`
+- OpenAPI JSON: `http://localhost:3001/api-docs.json`
+
 ### Health
 
 | Method | Endpoint | Description |

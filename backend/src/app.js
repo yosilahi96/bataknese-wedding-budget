@@ -12,6 +12,8 @@ const adminRoutes = require("./routes/admin");
 const masterCategoryRoutes = require("./routes/masterCategories");
 const vendorTypeRoutes = require("./routes/vendorTypes");
 const projectVendorRoutes = require("./routes/projectVendors");
+const openapi = require("./docs/openapi");
+const swaggerPage = require("./docs/swaggerPage");
 
 const app = express();
 
@@ -20,6 +22,14 @@ app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get("/api-docs.json", (_req, res) => {
+  res.json(openapi);
+});
+
+app.get("/api-docs", (_req, res) => {
+  res.type("html").send(swaggerPage());
 });
 
 app.use("/api/auth", authRoutes);
