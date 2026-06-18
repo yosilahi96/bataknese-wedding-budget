@@ -99,7 +99,7 @@ Build Command: npm install
 Start Command: npm start
 ```
 
-Do not use a Render build command with plain `npx prisma generate` from the repository root. The root install script runs Prisma from inside `backend`, where Prisma is pinned to this project's local version.
+Do not build the frontend on Render when Vercel is hosting it. The root install script installs the backend and runs Prisma from inside `backend`, where Prisma is pinned to this project's local version.
 
 For the Vercel frontend, add this environment variable in **Vercel Project > Settings > Environment Variables**:
 
@@ -108,6 +108,13 @@ VITE_API_URL="https://your-render-service.onrender.com/api"
 ```
 
 Redeploy Vercel after changing `VITE_API_URL`, because Vite reads this value at build time.
+
+For Vercel, set the project root directory to `frontend`, or use:
+
+```bash
+Build Command: npm run build
+Output Directory: dist
+```
 
 ### 4. Install dependencies and prepare the database
 
