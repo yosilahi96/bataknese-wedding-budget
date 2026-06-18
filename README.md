@@ -77,6 +77,29 @@ ENABLE_PUBLIC_REGISTRATION=true
 
 For production, set `NODE_ENV=production`, use a unique `JWT_SECRET` of at least 32 characters, set `CORS_ORIGIN` to your deployed frontend URL, and leave `ENABLE_API_DOCS=false` unless you intentionally want public API docs.
 
+### Render + Vercel + Supabase deployment
+
+For the Render backend service, add these environment variables in **Render Dashboard > Service > Environment**:
+
+```env
+NODE_ENV=production
+DATABASE_URL="your Supabase PostgreSQL connection string"
+JWT_SECRET="a unique random secret of at least 32 characters"
+CORS_ORIGIN="https://your-vercel-app.vercel.app"
+ENABLE_API_DOCS=false
+ENABLE_PUBLIC_REGISTRATION=true
+```
+
+Render should use Node 20. The repository pins this with `engines.node`, but you can also set `NODE_VERSION=20` in Render if needed.
+
+For the Vercel frontend, add this environment variable in **Vercel Project > Settings > Environment Variables**:
+
+```env
+VITE_API_URL="https://your-render-service.onrender.com/api"
+```
+
+Redeploy Vercel after changing `VITE_API_URL`, because Vite reads this value at build time.
+
 ### 4. Install dependencies and prepare the database
 
 From the repository root:
