@@ -1,4 +1,9 @@
-const BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+function getBaseUrl() {
+  const configuredUrl = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+  return configuredUrl.endsWith("/api") ? configuredUrl : `${configuredUrl}/api`;
+}
+
+const BASE_URL = getBaseUrl();
 const NETWORK_ERROR_MESSAGES = {
   en: "Network issue detected. Please check your internet connection and try again.",
   id: "Masalah jaringan terdeteksi. Periksa koneksi internet Anda lalu coba lagi.",
