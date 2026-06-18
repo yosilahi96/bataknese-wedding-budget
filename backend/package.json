@@ -15,6 +15,9 @@
   },
   "jest": {
     "testEnvironment": "node",
+    "setupFiles": [
+      "<rootDir>/src/__tests__/setupEnv.js"
+    ],
     "testMatch": [
       "**/__tests__/**/*.test.js"
     ],
@@ -35,5 +38,8 @@
     "nodemon": "^3.1.14",
     "prisma": "^6.4.1",
     "supertest": "^7.2.2"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }
