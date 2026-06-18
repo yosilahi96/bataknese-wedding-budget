@@ -46,9 +46,14 @@ function validateRequiredEnv() {
 }
 
 function buildCorsOptions() {
+  function normalizeOrigin(origin) {
+    return origin.replace(/\/$/, "");
+  }
+
   const allowedOrigins = (process.env.CORS_ORIGIN || "")
     .split(",")
     .map((origin) => origin.trim())
+    .map(normalizeOrigin)
     .filter(Boolean);
 
   if (!isProduction && allowedOrigins.length === 0) {
@@ -57,11 +62,12 @@ function buildCorsOptions() {
 
   return {
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
         return callback(null, true);
       }
-      return callback(new Error("Not allowed by CORS"));
+      return callback(null, false);
     },
+    optionsSuccessStatus: 204,
   };
 }
 
