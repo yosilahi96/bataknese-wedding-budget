@@ -95,11 +95,11 @@ Render should use Node 20. The repository pins this with `engines.node`, but you
 If Render asks for commands, use:
 
 ```bash
-Build Command: npm install
+Build Command: npm install && npm run build
 Start Command: npm start
 ```
 
-Do not build the frontend on Render when Vercel is hosting it. The root install script installs the backend and runs Prisma from inside `backend`, where Prisma is pinned to this project's local version.
+Do not build the frontend on Render when Vercel is hosting it. The root build script prepares the backend only, and the root install script installs the backend and runs Prisma from inside `backend`, where Prisma is pinned to this project's local version.
 
 For the Vercel frontend, add this environment variable in **Vercel Project > Settings > Environment Variables**:
 
