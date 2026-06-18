@@ -4,91 +4,97 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 async function main() {
-  const hashedPassword = await bcrypt.hash("password123", 10);
+  const seedDemoUsers = process.env.NODE_ENV !== "production" && process.env.SEED_DEMO_USERS !== "false";
 
-  const user = await prisma.user.upsert({
-    where: { email: "demo@example.com" },
-    update: {},
-    create: {
-      email: "demo@example.com",
-      password: hashedPassword,
-      name: "Demo User",
-    },
-  });
+  if (seedDemoUsers) {
+    const hashedPassword = await bcrypt.hash("password123", 10);
 
-  console.log("Created demo user:", user.email);
-
-  const existingProject = await prisma.weddingProject.findFirst({
-    where: { userId: user.id },
-  });
-
-  if (!existingProject) {
-    const project = await prisma.weddingProject.create({
-      data: {
-        groomName: "Parlindungan Sihotang",
-        brideName: "Rina Simbolon",
-        groomDomicile: "Jakarta Selatan",
-        brideDomicile: "Jakarta Timur",
-        weddingDate: new Date("2026-06-15"),
-        totalBudget: 150000000,
-        userId: user.id,
-        events: {
-          create: [
-            {
-              name: "Pesta Adat",
-              type: "PESTA_ADAT",
-              categories: {
-                create: [
-                  { name: "Sinamot (Bride Price)", plannedBudget: 30000000, actualCost: 30000000, notes: "Sesuai kesepakatan keluarga", sortOrder: 1 },
-                  { name: "Ulos (Traditional Cloth)", plannedBudget: 10000000, actualCost: 8500000, notes: "7 ulos untuk acara adat", sortOrder: 2 },
-                  { name: "Jambar (Ceremonial Gifts)", plannedBudget: 5000000, actualCost: 5000000, notes: "Jambar tulang, hata, dan juhut", sortOrder: 3 },
-                  { name: "Gondang (Traditional Music)", plannedBudget: 15000000, actualCost: 12000000, notes: "Gondang sabangunan", sortOrder: 4 },
-                  { name: "Gedung (Venue)", plannedBudget: 25000000, actualCost: 27000000, notes: "Gedung di Jakarta Selatan, termasuk dekorasi", sortOrder: 5 },
-                  { name: "Catering", plannedBudget: 30000000, actualCost: 28000000, notes: "500 porsi, termasuk nasi arsik dan saksang", sortOrder: 6 },
-                  { name: "Dokumentasi (Photo & Video)", plannedBudget: 10000000, actualCost: 10000000, notes: "Foto + video cinematic", sortOrder: 7 },
-                  { name: "Wedding Organizer", plannedBudget: 8000000, actualCost: 8000000, notes: "Full WO service", sortOrder: 8 },
-                  { name: "Transport", plannedBudget: 5000000, actualCost: 4000000, notes: "Shuttle bus 2 unit", sortOrder: 9 },
-                  { name: "Souvenir", plannedBudget: 7000000, actualCost: 6500000, notes: "500 pcs souvenir", sortOrder: 10 },
-                  { name: "Others", plannedBudget: 5000000, actualCost: 3000000, notes: "Biaya tak terduga", sortOrder: 11 },
-                ],
-              },
-            },
-            {
-              name: "3M Ceremony",
-              type: "THREE_M",
-              categories: {
-                create: [
-                  { name: "Marhusip venue", plannedBudget: 3000000, actualCost: 2500000, notes: "Ruang pertemuan keluarga", sortOrder: 1 },
-                  { name: "Martumpol church", plannedBudget: 2000000, actualCost: 2000000, notes: "Gereja HKBP", sortOrder: 2 },
-                  { name: "Pasu-pasu church", plannedBudget: 2000000, actualCost: 2000000, notes: "Pemberkatan nikah", sortOrder: 3 },
-                  { name: "Konsumsi kecil", plannedBudget: 3000000, actualCost: 2800000, notes: "Snack dan minuman", sortOrder: 4 },
-                  { name: "Dokumentasi sederhana", plannedBudget: 1500000, actualCost: 1500000, notes: "Foto saja", sortOrder: 5 },
-                  { name: "Transport keluarga", plannedBudget: 2000000, actualCost: 1800000, notes: "Transport keluarga inti", sortOrder: 6 },
-                  { name: "Others", plannedBudget: 1500000, actualCost: 1000000, notes: "Biaya lainnya", sortOrder: 7 },
-                ],
-              },
-            },
-          ],
-        },
+    const user = await prisma.user.upsert({
+      where: { email: "demo@example.com" },
+      update: {},
+      create: {
+        email: "demo@example.com",
+        password: hashedPassword,
+        name: "Demo User",
       },
     });
 
-    console.log("Created sample project:", project.groomName, "&", project.brideName);
-  }
+    console.log("Created demo user:", user.email);
 
-  // --- Admin user ---
-  const adminPassword = await bcrypt.hash("admin123", 10);
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@example.com" },
-    update: { isAdmin: true },
-    create: {
-      email: "admin@example.com",
-      password: adminPassword,
-      name: "Admin User",
-      isAdmin: true,
-    },
-  });
-  console.log("Admin user:", admin.email);
+    const existingProject = await prisma.weddingProject.findFirst({
+      where: { userId: user.id },
+    });
+
+    if (!existingProject) {
+      const project = await prisma.weddingProject.create({
+        data: {
+          groomName: "Parlindungan Sihotang",
+          brideName: "Rina Simbolon",
+          groomDomicile: "Jakarta Selatan",
+          brideDomicile: "Jakarta Timur",
+          weddingDate: new Date("2026-06-15"),
+          totalBudget: 150000000,
+          userId: user.id,
+          events: {
+            create: [
+              {
+                name: "Pesta Adat",
+                type: "PESTA_ADAT",
+                categories: {
+                  create: [
+                    { name: "Sinamot (Bride Price)", plannedBudget: 30000000, actualCost: 30000000, notes: "Sesuai kesepakatan keluarga", sortOrder: 1 },
+                    { name: "Ulos (Traditional Cloth)", plannedBudget: 10000000, actualCost: 8500000, notes: "7 ulos untuk acara adat", sortOrder: 2 },
+                    { name: "Jambar (Ceremonial Gifts)", plannedBudget: 5000000, actualCost: 5000000, notes: "Jambar tulang, hata, dan juhut", sortOrder: 3 },
+                    { name: "Gondang (Traditional Music)", plannedBudget: 15000000, actualCost: 12000000, notes: "Gondang sabangunan", sortOrder: 4 },
+                    { name: "Gedung (Venue)", plannedBudget: 25000000, actualCost: 27000000, notes: "Gedung di Jakarta Selatan, termasuk dekorasi", sortOrder: 5 },
+                    { name: "Catering", plannedBudget: 30000000, actualCost: 28000000, notes: "500 porsi, termasuk nasi arsik dan saksang", sortOrder: 6 },
+                    { name: "Dokumentasi (Photo & Video)", plannedBudget: 10000000, actualCost: 10000000, notes: "Foto + video cinematic", sortOrder: 7 },
+                    { name: "Wedding Organizer", plannedBudget: 8000000, actualCost: 8000000, notes: "Full WO service", sortOrder: 8 },
+                    { name: "Transport", plannedBudget: 5000000, actualCost: 4000000, notes: "Shuttle bus 2 unit", sortOrder: 9 },
+                    { name: "Souvenir", plannedBudget: 7000000, actualCost: 6500000, notes: "500 pcs souvenir", sortOrder: 10 },
+                    { name: "Others", plannedBudget: 5000000, actualCost: 3000000, notes: "Biaya tak terduga", sortOrder: 11 },
+                  ],
+                },
+              },
+              {
+                name: "3M Ceremony",
+                type: "THREE_M",
+                categories: {
+                  create: [
+                    { name: "Marhusip venue", plannedBudget: 3000000, actualCost: 2500000, notes: "Ruang pertemuan keluarga", sortOrder: 1 },
+                    { name: "Martumpol church", plannedBudget: 2000000, actualCost: 2000000, notes: "Gereja HKBP", sortOrder: 2 },
+                    { name: "Pasu-pasu church", plannedBudget: 2000000, actualCost: 2000000, notes: "Pemberkatan nikah", sortOrder: 3 },
+                    { name: "Konsumsi kecil", plannedBudget: 3000000, actualCost: 2800000, notes: "Snack dan minuman", sortOrder: 4 },
+                    { name: "Dokumentasi sederhana", plannedBudget: 1500000, actualCost: 1500000, notes: "Foto saja", sortOrder: 5 },
+                    { name: "Transport keluarga", plannedBudget: 2000000, actualCost: 1800000, notes: "Transport keluarga inti", sortOrder: 6 },
+                    { name: "Others", plannedBudget: 1500000, actualCost: 1000000, notes: "Biaya lainnya", sortOrder: 7 },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      });
+
+      console.log("Created sample project:", project.groomName, "&", project.brideName);
+    }
+
+    // --- Admin user ---
+    const adminPassword = await bcrypt.hash("admin123", 10);
+    const admin = await prisma.user.upsert({
+      where: { email: "admin@example.com" },
+      update: { isAdmin: true },
+      create: {
+        email: "admin@example.com",
+        password: adminPassword,
+        name: "Admin User",
+        isAdmin: true,
+      },
+    });
+    console.log("Admin user:", admin.email);
+  } else {
+    console.log("Skipping demo users and sample project");
+  }
 
   // --- Vendor seed data (70 vendors, 10 per type) ---
   const vendorCount = await prisma.vendor.count();

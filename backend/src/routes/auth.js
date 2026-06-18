@@ -13,6 +13,10 @@ function generateToken(userId) {
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
   try {
+    if (process.env.NODE_ENV === "production" && process.env.ENABLE_PUBLIC_REGISTRATION !== "true") {
+      return res.status(403).json({ error: "Public registration is disabled" });
+    }
+
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {

@@ -70,7 +70,12 @@ Edit `backend/.env`:
 DATABASE_URL="postgresql://YOUR_USER:YOUR_PASSWORD@localhost:5432/bataknese_wedding?schema=public"
 JWT_SECRET="pick-a-strong-random-secret"
 PORT=3001
+CORS_ORIGIN="http://localhost:5173"
+ENABLE_API_DOCS=false
+ENABLE_PUBLIC_REGISTRATION=true
 ```
+
+For production, set `NODE_ENV=production`, use a unique `JWT_SECRET` of at least 32 characters, set `CORS_ORIGIN` to your deployed frontend URL, and leave `ENABLE_API_DOCS=false` unless you intentionally want public API docs.
 
 ### 4. Install dependencies and prepare the database
 
@@ -115,15 +120,19 @@ The frontend runs at `http://localhost:5173`.
 
 ## Seeded Accounts
 
-Demo user:
+Demo accounts are for local development only. The seed script skips these users when `NODE_ENV=production`.
+
+Local demo user:
 
 - Email: `demo@example.com`
 - Password: `password123`
 
-Admin user:
+Local admin user:
 
 - Email: `admin@example.com`
 - Password: `admin123`
+
+For production, create your first admin account manually with a strong password, then do not publish or reuse the local demo credentials.
 
 ## Scripts
 
@@ -144,7 +153,7 @@ Backend:
 | `npm start` | Start Express |
 | `npm test` | Run Jest tests |
 | `npm run db:migrate` | Run Prisma migrate dev |
-| `npm run db:seed` | Seed demo data |
+| `npm run db:seed` | Seed vendor/category data, plus local demo accounts outside production |
 | `npm run db:reset` | Reset and reseed database |
 
 Frontend:

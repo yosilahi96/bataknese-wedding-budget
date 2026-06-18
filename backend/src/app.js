@@ -17,20 +17,72 @@ const swaggerPage = require("./docs/swaggerPage");
 
 const app = express();
 
-app.use(cors());
+const isProduction = process.env.NODE_ENV === "production";
+const insecureJwtSecrets = new Set([
+  "your-secret-key-change-in-production",
+  "local-dev-secret-change-me",
+  "secret",
+  "changeme",
+]);
+
+function validateRequiredEnv() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is required");
+  }
+
+  if (isProduction) {
+    if (insecureJwtSecrets.has(process.env.JWT_SECRET) || process.env.JWT_SECRET.length < 32) {
+      throw new Error("JWT_SECRET must be a strong production secret");
+    }
+
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL is required in production");
+    }
+
+    if (!process.env.CORS_ORIGIN) {
+      throw new Error("CORS_ORIGIN is required in production");
+    }
+  }
+}
+
+function buildCorsOptions() {
+  const allowedOrigins = (process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (!isProduction && allowedOrigins.length === 0) {
+    return {};
+  }
+
+  return {
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+  };
+}
+
+validateRequiredEnv();
+
+app.use(cors(buildCorsOptions()));
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-app.get("/api-docs.json", (_req, res) => {
-  res.json(openapi);
-});
+if (!isProduction || process.env.ENABLE_API_DOCS === "true") {
+  app.get("/api-docs.json", (_req, res) => {
+    res.json(openapi);
+  });
 
-app.get("/api-docs", (_req, res) => {
-  res.type("html").send(swaggerPage());
-});
+  app.get("/api-docs", (_req, res) => {
+    res.type("html").send(swaggerPage());
+  });
+}
 
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
