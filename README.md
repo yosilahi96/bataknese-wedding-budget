@@ -184,6 +184,33 @@ Root:
 | `npm start` | Start the backend server |
 | `npm run server` | Alias for backend start |
 
+## Jenkins Pipeline
+
+This repository includes a `Jenkinsfile` for CI plus post-deploy API automation triggering.
+
+Required Jenkins setup:
+
+- Install Node.js 20 and npm on the Jenkins agent.
+- Create a Pipeline job that points to this repository and uses `Jenkinsfile`.
+- Create a separate Jenkins job for the API automation repository, for example `api-automation`, using `C:\Users\yosil\OneDrive\Documents\api-automation` as its workspace/repository.
+- After deployment, run this app pipeline with `API_BASE_URL` set to your deployed backend URL, for example `https://your-render-service.onrender.com`.
+- Set `API_AUTOMATION_JOB` to the downstream Jenkins job name that runs the API automation repo.
+
+Pipeline stages:
+
+- Install backend dependencies and generate Prisma Client
+- Run backend API route tests with Jest
+- Install frontend dependencies
+- Run frontend tests with Vitest
+- Build the frontend
+- Optionally run a deploy stage when `RUN_DEPLOY=true`
+- Run a post-deploy smoke test against `GET /api/health` when `API_BASE_URL` is provided
+- Trigger the separate API automation Jenkins job when `RUN_API_AUTOMATION=true`
+
+If deployment is handled by Render/Vercel, keep `RUN_DEPLOY=false` and trigger this Jenkins job after deployment completes. If Jenkins should deploy too, replace the placeholder in the `Deploy` stage with your deployment command.
+
+The downstream API automation job should accept an `API_BASE_URL` string parameter if the tests need to know which deployed API to target.
+
 Backend:
 
 | Command | Description |
