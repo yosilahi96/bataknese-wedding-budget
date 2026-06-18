@@ -10,7 +10,7 @@
     "build": "cd frontend && npm run build",
     "start": "cd backend && npm start",
     "server": "cd backend && npm start",
-    "postinstall": "npm run install:all && npx prisma generate --schema=backend/prisma/schema.prisma && npm run build",
+    "postinstall": "npm run install:all && cd backend && npx prisma generate && cd ../frontend && npm run build",
     "dev": "echo 'Run backend and frontend separately — see README'"
   }
 }

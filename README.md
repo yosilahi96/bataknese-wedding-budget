@@ -92,6 +92,15 @@ ENABLE_PUBLIC_REGISTRATION=true
 
 Render should use Node 20. The repository pins this with `engines.node`, but you can also set `NODE_VERSION=20` in Render if needed.
 
+If Render asks for commands, use:
+
+```bash
+Build Command: npm install
+Start Command: npm start
+```
+
+Do not use a Render build command with plain `npx prisma generate` from the repository root. The root install script runs Prisma from inside `backend`, where Prisma is pinned to this project's local version.
+
 For the Vercel frontend, add this environment variable in **Vercel Project > Settings > Environment Variables**:
 
 ```env
