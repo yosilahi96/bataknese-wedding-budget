@@ -4,7 +4,7 @@ A full-stack web application to help Bataknese couples in Jakarta plan, track, a
 
 ## Features
 
-- Create and manage wedding projects for Pesta Adat or 3M Ceremony workflows
+- Create and manage wedding projects for Pesta Adat or 3M Ceremony workflowss
 - Wedding dates must be future dates when creating or editing project info
 - Budget dashboard with planned vs actual tracking and Recharts visualizations
 - Add, edit, and delete event-scoped budget categories
