@@ -60,6 +60,17 @@ pipeline {
       }
     }
 
+    stage('Verify Backend Test Setup') {
+      steps {
+        script {
+          runCommand(
+            'test -f backend/src/__tests__/setupEnv.js && ls -la backend/src/__tests__',
+            'if exist backend\\src\\__tests__\\setupEnv.js (dir backend\\src\\__tests__) else (echo setupEnv.js missing & exit /b 1)'
+          )
+        }
+      }
+    }
+
     stage('Install Backend') {
       steps {
         dir('backend') {
