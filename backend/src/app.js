@@ -18,6 +18,7 @@ const swaggerPage = require("./docs/swaggerPage");
 const app = express();
 
 const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 const insecureJwtSecrets = new Set([
   "your-secret-key-change-in-production",
   "local-dev-secret-change-me",
@@ -26,6 +27,10 @@ const insecureJwtSecrets = new Set([
 ]);
 
 function validateRequiredEnv() {
+  if (isTest) {
+    process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret-for-unit-tests";
+  }
+
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is required");
   }
