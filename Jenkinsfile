@@ -96,7 +96,10 @@ pipeline {
       steps {
         dir('backend') {
           script {
-            runCommand('npm run test:ci')
+            runCommand(
+              'JWT_SECRET=test-secret-for-unit-tests npm run test:ci',
+              'set JWT_SECRET=test-secret-for-unit-tests && npm run test:ci'
+            )
           }
         }
       }
