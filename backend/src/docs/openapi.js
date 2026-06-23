@@ -1,5 +1,9 @@
 const bearerAuth = [{ bearerAuth: [] }];
 
+const apiDocsServerUrl = process.env.API_DOCS_SERVER_URL || "http://localhost:3001";
+const apiDocsServerDescription =
+  process.env.API_DOCS_SERVER_DESCRIPTION || (apiDocsServerUrl.includes("localhost") ? "Local backend" : "Production backend");
+
 const idParam = (name, description) => ({
   name,
   in: "path",
@@ -54,7 +58,7 @@ const openapi = {
     description: "API documentation for authentication, wedding projects, budget categories, vendors, exports, and admin management.",
   },
   servers: [
-    { url: "http://localhost:3001", description: "Local backend" },
+    { url: apiDocsServerUrl, description: apiDocsServerDescription },
   ],
   tags: [
     { name: "Health" },

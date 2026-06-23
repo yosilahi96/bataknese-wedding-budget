@@ -72,6 +72,8 @@ JWT_SECRET="pick-a-strong-random-secret"
 PORT=3001
 CORS_ORIGIN="http://localhost:5173"
 ENABLE_API_DOCS=false
+API_DOCS_SERVER_URL="http://localhost:3001"
+API_DOCS_SERVER_DESCRIPTION="Local backend"
 ENABLE_PUBLIC_REGISTRATION=true
 ```
 
@@ -87,10 +89,12 @@ DATABASE_URL="your Supabase PostgreSQL connection string"
 JWT_SECRET="a unique random secret of at least 32 characters"
 CORS_ORIGIN="https://your-vercel-app.vercel.app"
 ENABLE_API_DOCS=false
+API_DOCS_SERVER_URL="https://your-render-service.onrender.com"
+API_DOCS_SERVER_DESCRIPTION="Production backend"
 ENABLE_PUBLIC_REGISTRATION=true
 ```
 
-Render should use Node 20. The repository pins this with `engines.node`, but you can also set `NODE_VERSION=20` in Render if needed.
+Render should use Node 20. The repository pinss this with `engines.node`, but you can also set `NODE_VERSION=20` in Render if needed.
 
 If Render asks for commands, use:
 
