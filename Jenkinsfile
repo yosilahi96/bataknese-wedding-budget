@@ -8,6 +8,7 @@ pipeline {
   options {
     timestamps()
     disableConcurrentBuilds()
+    skipDefaultCheckout(true)
   }
 
   triggers {
@@ -52,6 +53,13 @@ pipeline {
   }
 
   stages {
+    stage('Checkout') {
+      steps {
+        deleteDir()
+        checkout scm
+      }
+    }
+
     stage('Install Backend') {
       steps {
         dir('backend') {
