@@ -94,7 +94,7 @@ API_DOCS_SERVER_DESCRIPTION="Production backend"
 ENABLE_PUBLIC_REGISTRATION=true
 ```
 
-Render should use Node 20. The repository pins this with `engines.node`, but you can also set `NODE_VERSION=20` in Render if needed.
+Render should use Node 20. The repository pinss this with `engines.node`, but you can also set `NODE_VERSION=20` in Render if needed.
 
 If Render asks for commands, use:
 
