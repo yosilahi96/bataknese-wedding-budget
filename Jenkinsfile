@@ -173,10 +173,11 @@ pipeline {
 
     stage('Trigger API Automation') {
       when {
-        expression { return params.RUN_API_AUTOMATION && isMainBranch() }
+        expression { return params.RUN_API_AUTOMATION }
       }
       steps {
         script {
+          echo "Triggering API automation job: ${params.API_AUTOMATION_JOB}"
           build job: params.API_AUTOMATION_JOB,
             parameters: [
               string(name: 'API_BASE_URL', value: params.API_BASE_URL ?: '')
@@ -189,10 +190,11 @@ pipeline {
 
     stage('Trigger Frontend Automation') {
       when {
-        expression { return params.RUN_FE_AUTOMATION && isMainBranch() }
+        expression { return params.RUN_FE_AUTOMATION }
       }
       steps {
         script {
+          echo "Triggering frontend automation job: ${params.FE_AUTOMATION_JOB}"
           build job: params.FE_AUTOMATION_JOB,
             wait: true,
             propagate: true
@@ -208,8 +210,4 @@ void runCommand(String unixCommand, String windowsCommand = null) {
   } else {
     bat windowsCommand ?: unixCommand
   }
-}
-
-boolean isMainBranch() {
-  return env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main'
 }
