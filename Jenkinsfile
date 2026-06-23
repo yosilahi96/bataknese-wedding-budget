@@ -27,6 +27,11 @@ pipeline {
       description: 'Run the deploy stage before triggering post-deploy automation.'
     )
     booleanParam(
+      name: 'RUN_APP_CI',
+      defaultValue: false,
+      description: 'Run this repository install, test, and build stages before triggering automation.'
+    )
+    booleanParam(
       name: 'RUN_API_AUTOMATION',
       defaultValue: true,
       description: 'Trigger the downstream Jenkins API automation job on main.'
@@ -61,6 +66,9 @@ pipeline {
     }
 
     stage('Verify Backend Test Setup') {
+      when {
+        expression { return params.RUN_APP_CI }
+      }
       steps {
         script {
           runCommand(
@@ -72,6 +80,9 @@ pipeline {
     }
 
     stage('Install Backend') {
+      when {
+        expression { return params.RUN_APP_CI }
+      }
       steps {
         dir('backend') {
           script {
@@ -83,6 +94,9 @@ pipeline {
     }
 
     stage('Install Frontend') {
+      when {
+        expression { return params.RUN_APP_CI }
+      }
       steps {
         dir('frontend') {
           script {
@@ -93,6 +107,9 @@ pipeline {
     }
 
     stage('Backend API Tests') {
+      when {
+        expression { return params.RUN_APP_CI }
+      }
       steps {
         dir('backend') {
           script {
@@ -106,6 +123,9 @@ pipeline {
     }
 
     stage('Frontend Tests') {
+      when {
+        expression { return params.RUN_APP_CI }
+      }
       steps {
         dir('frontend') {
           script {
@@ -116,6 +136,9 @@ pipeline {
     }
 
     stage('Frontend Build') {
+      when {
+        expression { return params.RUN_APP_CI }
+      }
       steps {
         dir('frontend') {
           script {
