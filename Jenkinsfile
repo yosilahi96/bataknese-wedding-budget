@@ -10,6 +10,10 @@ pipeline {
     disableConcurrentBuilds()
   }
 
+  triggers {
+    githubPush()
+  }
+
   parameters {
     string(
       name: 'API_BASE_URL',
