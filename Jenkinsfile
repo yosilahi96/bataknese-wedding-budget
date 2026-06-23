@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  tools {
+    nodejs 'NodeJS 20'
+  }
+
   options {
     timestamps()
     disableConcurrentBuilds()
@@ -20,12 +24,22 @@ pipeline {
     booleanParam(
       name: 'RUN_API_AUTOMATION',
       defaultValue: true,
-      description: 'Trigger the downstream Jenkins API automation job after deployment.'
+      description: 'Trigger the downstream Jenkins API automation job on main.'
+    )
+    booleanParam(
+      name: 'RUN_FE_AUTOMATION',
+      defaultValue: true,
+      description: 'Trigger the downstream Jenkins frontend automation job on main.'
     )
     string(
       name: 'API_AUTOMATION_JOB',
       defaultValue: 'api-automation',
       description: 'Jenkins job name that runs the separate API automation repository.'
+    )
+    string(
+      name: 'FE_AUTOMATION_JOB',
+      defaultValue: 'frontend-automation',
+      description: 'Jenkins job name that runs the separate frontend automation repository.'
     )
   }
 
@@ -110,7 +124,7 @@ pipeline {
 
     stage('Trigger API Automation') {
       when {
-        expression { return params.RUN_API_AUTOMATION }
+        expression { return params.RUN_API_AUTOMATION && isMainBranch() }
       }
       steps {
         script {
@@ -118,6 +132,19 @@ pipeline {
             parameters: [
               string(name: 'API_BASE_URL', value: params.API_BASE_URL ?: '')
             ],
+            wait: true,
+            propagate: true
+        }
+      }
+    }
+
+    stage('Trigger Frontend Automation') {
+      when {
+        expression { return params.RUN_FE_AUTOMATION && isMainBranch() }
+      }
+      steps {
+        script {
+          build job: params.FE_AUTOMATION_JOB,
             wait: true,
             propagate: true
         }
@@ -132,4 +159,8 @@ void runCommand(String unixCommand, String windowsCommand = null) {
   } else {
     bat windowsCommand ?: unixCommand
   }
+}
+
+boolean isMainBranch() {
+  return env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main'
 }
