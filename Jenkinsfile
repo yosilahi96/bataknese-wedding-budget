@@ -33,12 +33,12 @@ pipeline {
     )
     string(
       name: 'API_AUTOMATION_JOB',
-      defaultValue: 'api-automation',
+      defaultValue: 'be-automation',
       description: 'Jenkins job name that runs the separate API automation repository.'
     )
     string(
       name: 'FE_AUTOMATION_JOB',
-      defaultValue: 'frontend-automation',
+      defaultValue: 'fe-automation',
       description: 'Jenkins job name that runs the separate frontend automation repository.'
     )
   }
