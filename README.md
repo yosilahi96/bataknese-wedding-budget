@@ -105,6 +105,8 @@ Start Command: npm start
 
 Do not build the frontend on Render when Vercel is hosting it. The root build script prepares the backend only, and the root install script installs the backend and runs Prisma from inside `backend`, where Prisma is pinned to this project's local version.
 
+Supabase security lints require Row Level Security on tables exposed through the `public` schema. The Prisma migration `20260624000000_enable_supabase_rls` enables RLS for the app tables without adding anon/authenticated policies. This intentionally blocks direct Supabase REST access from public clients; the app should continue to access the database through the backend using the server-side `DATABASE_URL`. Apply it in production with `cd backend && npx prisma migrate deploy`.
+
 For the Vercel frontend, add this environment variable in **Vercel Project > Settings > Environment Variables**:
 
 ```env
