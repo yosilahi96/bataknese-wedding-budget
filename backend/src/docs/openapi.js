@@ -618,7 +618,17 @@ const openapi = {
       EventType: { type: "string", enum: ["PESTA_ADAT", "THREE_M"] },
       ErrorResponse: {
         type: "object",
-        properties: { error: { type: "string" } },
+        properties: {
+          error: { type: "string", example: "Wedding date must be a future date" },
+          message: { type: "string", example: "Wedding date must be a future date" },
+          status: { type: "integer", example: 400 },
+          code: { type: "string", example: "BAD_REQUEST" },
+          details: {
+            type: "array",
+            items: { type: "string" },
+            description: "Development-only stack trace lines for unexpected server errors",
+          },
+        },
       },
       HealthResponse: {
         type: "object",

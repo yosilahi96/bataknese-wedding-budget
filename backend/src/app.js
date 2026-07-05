@@ -26,6 +26,59 @@ const insecureJwtSecrets = new Set([
   "changeme",
 ]);
 
+const HTTP_ERROR_CODES = {
+  400: "BAD_REQUEST",
+  401: "UNAUTHORIZED",
+  403: "FORBIDDEN",
+  404: "NOT_FOUND",
+  409: "CONFLICT",
+  413: "PAYLOAD_TOO_LARGE",
+  415: "UNSUPPORTED_MEDIA_TYPE",
+  422: "UNPROCESSABLE_ENTITY",
+  429: "TOO_MANY_REQUESTS",
+  500: "INTERNAL_SERVER_ERROR",
+};
+
+function getErrorCode(status) {
+  return HTTP_ERROR_CODES[status] || "REQUEST_FAILED";
+}
+
+function normalizeErrorResponse(body, status) {
+  const fallbackMessage = status >= 500 ? "Internal server error" : "Request failed";
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    const message = typeof body === "string" ? body : fallbackMessage;
+    return {
+      error: message,
+      message,
+      status,
+      code: getErrorCode(status),
+    };
+  }
+
+  const message = body.message || body.error || fallbackMessage;
+  return {
+    ...body,
+    error: body.error || message,
+    message,
+    status: body.status || status,
+    code: body.code || getErrorCode(status),
+  };
+}
+
+function errorResponseFormatter(_req, res, next) {
+  const originalJson = res.json.bind(res);
+
+  res.json = (body) => {
+    if (res.statusCode >= 400) {
+      return originalJson(normalizeErrorResponse(body, res.statusCode));
+    }
+    return originalJson(body);
+  };
+
+  next();
+}
+
 function validateRequiredEnv() {
   if (isTest) {
     process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret-for-unit-tests";
@@ -80,6 +133,7 @@ validateRequiredEnv();
 
 app.use(cors(buildCorsOptions()));
 app.use(express.json());
+app.use(errorResponseFormatter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -105,9 +159,23 @@ app.use("/api/master-categories", masterCategoryRoutes);
 app.use("/api/vendor-types", vendorTypeRoutes);
 app.use("/api/projects", projectVendorRoutes);
 
+app.use("/api", (req, res) => {
+  res.status(404).json({
+    error: `API route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Internal server error" });
+  const status = err.status || err.statusCode || 500;
+  const message = !isProduction && err.message ? err.message : "Internal server error";
+  const body = { error: message, code: err.code || getErrorCode(status) };
+
+  if (!isProduction && err.stack) {
+    body.details = err.stack.split("\n").map((line) => line.trim());
+  }
+
+  res.status(status).json(body);
 });
 
 module.exports = app;
