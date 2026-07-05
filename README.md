@@ -37,6 +37,11 @@ A full-stack web application to help Bataknese couples in Jakarta plan, track, a
 - PostgreSQL >= 14
 - npm
 
+Or, for containerized local development:
+
+- Docker Desktop
+- Docker Compose
+
 ## Setup
 
 ### 1. Enter the project
@@ -162,6 +167,37 @@ npm run dev
 ```
 
 The frontend runs at `http://localhost:5173`.
+
+## Docker Setup
+
+You can run the local development stack with Docker instead of installing PostgreSQL locally.
+
+From the repository root:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+
+- PostgreSQL at `localhost:5432`
+- Backend API at `http://localhost:3001`
+- Frontend at `http://localhost:5173`
+
+The backend container runs Prisma Client generation, applies migrations with `prisma migrate deploy`, seeds local demo data, and starts the API with nodemon.
+
+To stop the stack:
+
+```bash
+docker compose down
+```
+
+To reset the local Docker database:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
 
 ## Seeded Accounts
 

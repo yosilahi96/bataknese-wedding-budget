@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bataknese-wedding-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bataknese_wedding
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bataknese_wedding"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: bataknese-wedding-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/bataknese_wedding?schema=public
+      JWT_SECRET: local-docker-development-secret-change-me
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:5173
+      ENABLE_API_DOCS: "true"
+      API_DOCS_SERVER_URL: http://localhost:3001
+      API_DOCS_SERVER_DESCRIPTION: Local Docker backend
+      ENABLE_PUBLIC_REGISTRATION: "true"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run db:seed && npm run dev"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: bataknese-wedding-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  postgres_data:
+  backend_node_modules:
+  frontend_node_modules:
