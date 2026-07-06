@@ -828,7 +828,7 @@ tr:hover {
 }
 
 .filter-bar select,
-.filter-bar input {
+.filter-bar input:not([type="checkbox"]):not([type="radio"]) {
   padding: var(--sp-2) var(--sp-3);
   height: 40px;
   border: 1px solid var(--border);
@@ -840,10 +840,19 @@ tr:hover {
 }
 
 .filter-bar select:focus,
-.filter-bar input:focus {
+.filter-bar input:not([type="checkbox"]):not([type="radio"]):focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(207, 69, 0, 0.12);
+}
+
+.filter-bar input[type="checkbox"],
+.filter-bar input[type="radio"] {
+  width: auto;
+  height: auto;
+  min-width: 18px;
+  min-height: 18px;
+  flex: 0 0 auto;
 }
 
 /* ═══════════════════════════════════════════════
@@ -1317,13 +1326,23 @@ tr.vendor-selected:hover {
   }
 
   .filter-bar select,
-  .filter-bar input {
+  .filter-bar input:not([type="checkbox"]):not([type="radio"]) {
     width: 100%;
     min-height: 44px;
   }
 
   .filter-bar label {
     min-height: 44px;
+    width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .filter-bar label input[type="checkbox"],
+  .filter-bar label input[type="radio"] {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px;
+    min-height: 18px;
   }
 
   .filter-bar > span {
