@@ -214,7 +214,7 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
           No vendors found. {searchQuery || filterLocation || filterPrice || filterCapacity ? "Try adjusting your filters." : guestCount ? "" : "Set guest count for better results."}
         </p>
       ) : (
-        <div className="table-container">
+        <div className="table-container vendor-recommendations-table">
           <table>
             <thead>
               <tr>

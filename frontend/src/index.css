@@ -345,6 +345,7 @@ input, select, textarea {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   padding: var(--sp-8);
+  min-width: 0;
   transition: box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
@@ -416,6 +417,10 @@ input, select, textarea {
 .table-card {
   padding: 0;
   overflow: hidden;
+}
+
+.table-card-header {
+  padding: var(--sp-6) var(--sp-6) var(--sp-4);
 }
 
 .responsive-summary-grid {
@@ -496,17 +501,65 @@ input, select, textarea {
    TABLE — Clean, minimal, scannable
    ═══════════════════════════════════════════════ */
 .table-container {
+  display: block;
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
   max-width: 100%;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-light);
   background: #ffffff;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+}
+
+.vendor-recommendations-table {
+  overflow-x: hidden;
+}
+
+.vendor-recommendations-table table {
+  table-layout: fixed;
+}
+
+.vendor-recommendations-table th:nth-child(1),
+.vendor-recommendations-table td:nth-child(1) {
+  width: 35%;
+}
+
+.vendor-recommendations-table th:nth-child(2),
+.vendor-recommendations-table td:nth-child(2) {
+  width: 14%;
+}
+
+.vendor-recommendations-table th:nth-child(3),
+.vendor-recommendations-table td:nth-child(3) {
+  width: 27%;
+  white-space: normal !important;
+}
+
+.vendor-recommendations-table th:nth-child(4),
+.vendor-recommendations-table td:nth-child(4) {
+  width: 10%;
+}
+
+.vendor-recommendations-table th:nth-child(5),
+.vendor-recommendations-table td:nth-child(5) {
+  width: 14%;
+}
+
+.vendor-recommendations-table .table-actions {
+  flex-wrap: wrap;
+}
+
+.vendor-recommendations-table .btn-sm {
+  padding-left: var(--sp-3);
+  padding-right: var(--sp-3);
 }
 
 table {
   width: 100%;
-  min-width: 640px;
   border-collapse: collapse;
 }
 
@@ -826,6 +879,11 @@ tr:hover {
   grid-template-columns: 1fr 360px;
   gap: var(--sp-6);
   align-items: start;
+  min-width: 0;
+}
+
+.vendor-layout > * {
+  min-width: 0;
 }
 
 .vendor-sidebar {
@@ -1348,6 +1406,18 @@ tr.vendor-selected:hover {
     padding: 0;
   }
 
+  .table-card-header {
+    padding: var(--sp-5) var(--sp-5) var(--sp-4);
+  }
+
+  .table-card-header .section-title {
+    line-height: 1.15;
+  }
+
+  .table-card-header .btn {
+    width: 100%;
+  }
+
   .sub-card {
     border-radius: 28px;
     padding: var(--sp-4);
@@ -1367,6 +1437,17 @@ tr.vendor-selected:hover {
     border-radius: 28px;
   }
 
+  .vendor-recommendations-table {
+    margin-left: calc(var(--sp-5) * -1);
+    margin-right: calc(var(--sp-5) * -1);
+    width: calc(100% + var(--sp-10));
+    max-width: calc(100% + var(--sp-10));
+    overflow-x: auto;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+
   th,
   td {
     padding: var(--sp-3);
@@ -1374,6 +1455,11 @@ tr.vendor-selected:hover {
 
   table {
     min-width: 600px;
+  }
+
+  .vendor-recommendations-table table {
+    min-width: 720px;
+    table-layout: auto;
   }
 
   .compare-table {

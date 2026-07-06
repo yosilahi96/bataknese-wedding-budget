@@ -362,7 +362,7 @@ export default function ProjectDetailPage() {
 
       {/* Active Event Categories Table */}
       <div className="card table-card">
-        <div className="responsive-toolbar" style={{ marginBottom: "var(--sp-5)" }}>
+        <div className="responsive-toolbar table-card-header">
           <h3 className="section-title" style={{ marginBottom: 0 }}>{t("categoriesTitle", { name: activeEvent?.name })}</h3>
           {!project.isFinalized && (
             <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)} style={{ gap: "var(--sp-1)" }}>
