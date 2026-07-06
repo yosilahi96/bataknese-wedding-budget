@@ -5,11 +5,12 @@ export default function LanguageSelect({ compact = false }) {
 
   return (
     <label
+      className={`language-select${compact ? " language-select-compact" : ""}`}
       style={{
         display: "inline-flex",
         alignItems: "center",
         gap: "var(--sp-2)",
-        color: compact ? "var(--text-secondary)" : "var(--text-secondary)",
+        color: "var(--text-secondary)",
         fontSize: "0.8125rem",
       }}
     >
@@ -19,8 +20,8 @@ export default function LanguageSelect({ compact = false }) {
         onChange={(e) => setLanguage(e.target.value)}
         aria-label={t("language")}
         style={{
-          height: 32,
-          minWidth: compact ? 92 : 150,
+          height: compact ? 36 : 36,
+          minWidth: compact ? 76 : 150,
           borderRadius: "var(--radius-pill)",
           border: compact ? "1px solid var(--border)" : "1px solid var(--border)",
           background: compact ? "var(--canvas)" : "var(--surface)",

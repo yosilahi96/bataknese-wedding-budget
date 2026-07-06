@@ -60,7 +60,7 @@ function BudgetComparisonChart({ projects }) {
       </div>
 
       {/* Summary stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: hasPestaAdat && hasThreeM ? "1fr 1fr" : "1fr", gap: "var(--sp-3)", marginBottom: "var(--sp-6)" }}>
+      <div className="responsive-summary-grid" style={{ gridTemplateColumns: hasPestaAdat && hasThreeM ? "1fr 1fr" : "1fr" }}>
         {hasPestaAdat && (
           <div className="sub-card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-3)" }}>
@@ -232,7 +232,7 @@ export default function ProjectsPage() {
                 className="fade-in"
               >
                 <div className="card card-hover" style={{ cursor: "pointer" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: "var(--sp-4)" }}>
+                  <div className="responsive-toolbar" style={{ alignItems: "start" }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)", marginBottom: "var(--sp-1)" }}>
                         <h3 style={{ fontSize: "1rem", fontWeight: 600, letterSpacing: "-0.01em" }}>

@@ -192,7 +192,7 @@ export default function ProjectDetailPage() {
           </svg>
           {t("backToProjects")}
         </button>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "var(--sp-4)" }}>
+        <div className="responsive-toolbar" style={{ alignItems: "start" }}>
           <div>
             <h1 className="page-title">{project.groomName} & {project.brideName}</h1>
             <p className="page-subtitle" style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", flexWrap: "wrap" }}>
@@ -202,7 +202,7 @@ export default function ProjectDetailPage() {
               {project.isFinalized && <span className="badge badge-success" style={{ marginLeft: "var(--sp-1)" }}>Finalized</span>}
             </p>
           </div>
-          <div style={{ display: "flex", gap: "var(--sp-2)", flexWrap: "wrap" }}>
+          <div className="responsive-actions">
             {!project.isFinalized && (
               <>
                 <button className="btn btn-outline btn-sm" onClick={() => setShowEditProjectModal(true)}>{t("editInfo")}</button>
@@ -361,8 +361,8 @@ export default function ProjectDetailPage() {
       )}
 
       {/* Active Event Categories Table */}
-      <div className="card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-5)" }}>
+      <div className="card table-card">
+        <div className="responsive-toolbar" style={{ marginBottom: "var(--sp-5)" }}>
           <h3 className="section-title" style={{ marginBottom: 0 }}>{t("categoriesTitle", { name: activeEvent?.name })}</h3>
           {!project.isFinalized && (
             <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)} style={{ gap: "var(--sp-1)" }}>
@@ -402,7 +402,7 @@ export default function ProjectDetailPage() {
                     </td>
                     {!project.isFinalized && (
                       <td>
-                        <div style={{ display: "flex", gap: "var(--sp-2)" }}>
+                        <div className="table-actions">
                           <button
                             className="btn btn-ghost btn-sm"
                             onClick={() => setEditingCategory(cat)}

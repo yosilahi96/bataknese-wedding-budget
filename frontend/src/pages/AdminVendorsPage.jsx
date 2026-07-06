@@ -178,7 +178,7 @@ export default function AdminVendorsPage() {
       {loading ? (
         <div className="loading-state">Loading...</div>
       ) : (
-        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div className="card table-card">
           <div className="table-container">
             <table>
               <thead>
@@ -211,7 +211,7 @@ export default function AdminVendorsPage() {
                       </td>
                       <td>{v.isBatakSpecialist ? <span className="batak-badge">Yes</span> : "-"}</td>
                       <td>
-                        <div style={{ display: "flex", gap: "var(--sp-2)" }}>
+                        <div className="table-actions">
                           <button className="btn btn-ghost btn-sm" onClick={() => openEdit(v)} title="Edit" style={{ padding: "4px 6px", height: "auto" }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" />
@@ -242,7 +242,7 @@ export default function AdminVendorsPage() {
 
       {/* Pagination */}
       {!loading && totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "var(--sp-2)", marginTop: "var(--sp-5)" }}>
+        <div className="pagination-actions">
           <button
             className="btn btn-outline btn-sm"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}

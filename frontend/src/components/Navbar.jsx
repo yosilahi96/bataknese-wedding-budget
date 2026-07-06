@@ -55,16 +55,16 @@ export default function Navbar() {
     <>
       <nav className="navbar">
         <div className="container">
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)" }}>
+          <div className="navbar-main">
             <Link to="/" className="navbar-brand">
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-2)" }}>
+              <span className="navbar-brand-inner">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
                 BatakWedding
               </span>
             </Link>
-            <nav style={{ display: "flex", alignItems: "center", gap: "var(--sp-1)", marginLeft: "var(--sp-4)" }}>
+            <nav className="navbar-links">
               <Link to="/vendors" className="navbar-link">{t("navVendors")}</Link>
               {user?.isAdmin && (
                 <>
@@ -76,7 +76,7 @@ export default function Navbar() {
               )}
             </nav>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)" }}>
+          <div className="navbar-actions">
             <LanguageSelect compact />
             <span style={{ color: "var(--text-secondary)", fontSize: "0.8125rem" }}>{user?.name}</span>
             <button onClick={openChangePassword} className="navbar-btn">{t("navPassword")}</button>

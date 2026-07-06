@@ -127,7 +127,7 @@ export default function VendorsPage() {
       )}
 
       {!loading && pagination.totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "var(--sp-2)", marginTop: "var(--sp-5)" }}>
+        <div className="pagination-actions">
           <button
             className="btn btn-outline btn-sm"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}

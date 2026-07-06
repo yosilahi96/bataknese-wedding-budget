@@ -136,7 +136,7 @@ export default function NewProjectPage() {
           {/* Section: Event Type */}
           <div className="form-section">
             <div className="form-section-title">{t("eventType")}</div>
-            <div style={{ display: "flex", gap: "var(--sp-3)" }}>
+            <div className="responsive-stack">
               <label
                 style={{
                   display: "flex",
@@ -197,7 +197,7 @@ export default function NewProjectPage() {
           </div>
 
           {/* Actions */}
-          <div style={{ display: "flex", gap: "var(--sp-3)", justifyContent: "flex-end", paddingTop: "var(--sp-4)", borderTop: "1px solid var(--border-light)" }}>
+          <div className="responsive-actions" style={{ paddingTop: "var(--sp-4)", borderTop: "1px solid var(--border-light)" }}>
             <button type="button" className="btn btn-outline" onClick={() => navigate("/")}>{t("cancel")}</button>
             <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
               {loading ? t("creating") : t("createProject")}

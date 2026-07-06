@@ -151,7 +151,7 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
 
   return (
     <div className="card" style={{ marginBottom: 0 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-5)", flexWrap: "wrap", gap: "var(--sp-3)" }}>
+      <div className="responsive-toolbar" style={{ marginBottom: "var(--sp-5)" }}>
         <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, letterSpacing: "-0.01em" }}>Vendor Recommendations</h3>
         {compareVendors.length >= 2 && (
           <button className="btn btn-primary btn-sm" onClick={() => setShowCompare(true)}>
@@ -182,7 +182,7 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
       </div>
 
       {/* Type Tabs + Sort */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--sp-3)", marginBottom: "var(--sp-4)" }}>
+      <div className="responsive-toolbar" style={{ marginBottom: "var(--sp-4)" }}>
         <div className="event-tabs" style={{ marginBottom: 0 }}>
           {vendorTypes.map((vt) => (
             <button
@@ -255,7 +255,7 @@ export default function VendorRecommendationPanel({ projectId, guestCount, onVen
                       {vendor.isBatakSpecialist && <span className="badge badge-success" style={{ fontSize: "0.625rem" }}>Yes</span>}
                     </td>
                     <td>
-                      <div style={{ display: "flex", gap: "var(--sp-2)" }}>
+                      <div className="table-actions">
                         <button
                           className={`btn btn-sm ${isComparing ? "btn-outline" : "btn-ghost"}`}
                           onClick={() => toggleCompare(vendor)}

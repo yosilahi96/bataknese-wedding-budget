@@ -29,7 +29,7 @@ export default function SelectedVendorsSummary({ projectVendors, totalBudget, on
 
       {/* Budget summary */}
       <div className="sub-card" style={{ marginBottom: vendors.length > 0 ? "var(--sp-4)" : 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-2)" }}>
+        <div className="responsive-toolbar" style={{ marginBottom: "var(--sp-2)" }}>
           <span style={{ fontWeight: 500, fontSize: "0.8125rem", color: "var(--text-secondary)" }}>Vendor Cost</span>
           <span className="currency" style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{formatRupiah(totalEstimated)}</span>
         </div>
@@ -77,7 +77,7 @@ export default function SelectedVendorsSummary({ projectVendors, totalBudget, on
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.8125rem" }}>{v?.name}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", marginTop: "2px" }}>
+                  <div className="responsive-toolbar" style={{ justifyContent: "flex-start", gap: "var(--sp-2)", marginTop: "2px" }}>
                     <span
                       className="vendor-type-badge"
                       style={{
