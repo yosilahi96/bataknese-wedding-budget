@@ -9,7 +9,7 @@ export default function LanguageSelect({ compact = false }) {
         display: "inline-flex",
         alignItems: "center",
         gap: "var(--sp-2)",
-        color: compact ? "rgba(255,255,255,0.75)" : "var(--text-secondary)",
+        color: compact ? "var(--text-secondary)" : "var(--text-secondary)",
         fontSize: "0.8125rem",
       }}
     >
@@ -21,10 +21,10 @@ export default function LanguageSelect({ compact = false }) {
         style={{
           height: 32,
           minWidth: compact ? 92 : 150,
-          borderRadius: "var(--radius)",
-          border: compact ? "1px solid rgba(255,255,255,0.22)" : "1px solid var(--border)",
-          background: compact ? "rgba(255,255,255,0.08)" : "var(--surface)",
-          color: compact ? "white" : "var(--text)",
+          borderRadius: "var(--radius-pill)",
+          border: compact ? "1px solid var(--border)" : "1px solid var(--border)",
+          background: compact ? "var(--canvas)" : "var(--surface)",
+          color: "var(--text)",
           padding: "0 var(--sp-2)",
           fontSize: "0.8125rem",
         }}

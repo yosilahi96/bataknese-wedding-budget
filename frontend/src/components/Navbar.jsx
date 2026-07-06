@@ -78,7 +78,7 @@ export default function Navbar() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)" }}>
             <LanguageSelect compact />
-            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8125rem" }}>{user?.name}</span>
+            <span style={{ color: "var(--text-secondary)", fontSize: "0.8125rem" }}>{user?.name}</span>
             <button onClick={openChangePassword} className="navbar-btn">{t("navPassword")}</button>
             <button onClick={logout} className="navbar-btn">{t("navLogout")}</button>
           </div>
