@@ -234,7 +234,7 @@ Required Jenkins setup:
 
 - Install Node.js 20 and npm on the Jenkins agent.
 - Create a Pipeline job that points to this repository and uses `Jenkinsfile`.
-- Create a separate Jenkins job for the API automation repository, for example `api-automation`, using `C:\Users\yosil\OneDrive\Documents\api-automation` as its workspace/repository.
+- Create a separate Jenkins job for the API automation repository, for example `api-automation`, using that repository's checkout/workspace path.
 - After deployment, run this app pipeline with `API_BASE_URL` set to your deployed backend URL, for example `https://your-render-service.onrender.com`.
 - Set `API_AUTOMATION_JOB` to the downstream Jenkins job name that runs the API automation repo.
 
