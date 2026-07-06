@@ -8,6 +8,9 @@ const router = express.Router();
 router.get("/", authenticate, async (req, res) => {
   try {
     const { type, minPrice, maxPrice, minCapacity, isBatakSpecialist, sortBy } = req.query;
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 12, 1), 50);
+    const skip = (page - 1) * limit;
 
     const where = {};
     if (type) where.type = type;
@@ -25,8 +28,21 @@ router.get("/", authenticate, async (req, res) => {
     if (sortBy === "price_desc") orderBy = { maxPriceEstimate: "desc" };
     if (sortBy === "name") orderBy = { name: "asc" };
 
-    const vendors = await prisma.vendor.findMany({ where, orderBy });
-    res.json({ vendors });
+    const [vendors, total] = await Promise.all([
+      prisma.vendor.findMany({ where, orderBy, skip, take: limit }),
+      prisma.vendor.count({ where }),
+    ]);
+    const totalPages = Math.max(Math.ceil(total / limit), 1);
+
+    res.json({
+      vendors,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    });
   } catch (err) {
     console.error("List vendors error:", err);
     res.status(500).json({ error: "Failed to list vendors" });

@@ -8,6 +8,7 @@ const SORT_OPTIONS = [
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
 ];
+const PAGE_SIZE = 12;
 
 function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
@@ -18,6 +19,8 @@ export default function VendorsPage() {
   const [vendorTypes, setVendorTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ type: "", isBatakSpecialist: "", sortBy: "name" });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 });
   const [selectedVendor, setSelectedVendor] = useState(null);
 
   useEffect(() => {
@@ -26,22 +29,28 @@ export default function VendorsPage() {
 
   useEffect(() => {
     loadVendors();
-  }, [filters]);
+  }, [filters, currentPage]);
 
   async function loadVendors() {
     setLoading(true);
     try {
-      const params = {};
+      const params = { page: currentPage, limit: PAGE_SIZE };
       if (filters.type) params.type = filters.type;
       if (filters.isBatakSpecialist) params.isBatakSpecialist = filters.isBatakSpecialist;
       if (filters.sortBy) params.sortBy = filters.sortBy;
       const data = await api.listVendors(params);
       setVendors(data.vendors || []);
+      setPagination(data.pagination || { page: currentPage, limit: PAGE_SIZE, total: data.vendors?.length || 0, totalPages: 1 });
     } catch (err) {
       console.error("Failed to load vendors:", err);
     } finally {
       setLoading(false);
     }
+  }
+
+  function updateFilters(nextFilters) {
+    setCurrentPage(1);
+    setFilters((f) => ({ ...f, ...nextFilters }));
   }
 
   const typeLabels = {};
@@ -51,6 +60,8 @@ export default function VendorsPage() {
     if (vt.isPricePerPax) perPaxTypes[vt.code] = true;
   });
   const colorMap = buildVendorTypeColorMap(vendorTypes);
+  const startItem = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
+  const endItem = Math.min(pagination.page * pagination.limit, pagination.total);
 
   return (
     <div className="fade-in">
@@ -60,19 +71,19 @@ export default function VendorsPage() {
           <p className="page-subtitle">Browse and find vendors for your Bataknese wedding in Jakarta.</p>
         </div>
         <span className="badge badge-neutral" style={{ fontSize: "0.75rem", padding: "var(--sp-1) var(--sp-3)" }}>
-          {vendors.length} vendors
+          {pagination.total} vendors
         </span>
       </div>
 
       <div className="filter-bar">
-        <select value={filters.type} onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}>
+        <select value={filters.type} onChange={(e) => updateFilters({ type: e.target.value })}>
           <option value="">All Types</option>
           {vendorTypes.map((vt) => (
             <option key={vt.code} value={vt.code}>{vt.label}</option>
           ))}
         </select>
 
-        <select value={filters.sortBy} onChange={(e) => setFilters((f) => ({ ...f, sortBy: e.target.value }))}>
+        <select value={filters.sortBy} onChange={(e) => updateFilters({ sortBy: e.target.value })}>
           {SORT_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>{s.label}</option>
           ))}
@@ -82,11 +93,17 @@ export default function VendorsPage() {
           <input
             type="checkbox"
             checked={filters.isBatakSpecialist === "true"}
-            onChange={(e) => setFilters((f) => ({ ...f, isBatakSpecialist: e.target.checked ? "true" : "" }))}
+            onChange={(e) => updateFilters({ isBatakSpecialist: e.target.checked ? "true" : "" })}
             style={{ accentColor: "var(--primary)" }}
           />
           Batak Specialist Only
         </label>
+
+        <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
+          {pagination.total > PAGE_SIZE
+            ? `${startItem}-${endItem} of ${pagination.total} vendors`
+            : `${pagination.total} vendors`}
+        </span>
       </div>
 
       {loading ? (
@@ -106,6 +123,28 @@ export default function VendorsPage() {
               colorMap={colorMap}
             />
           ))}
+        </div>
+      )}
+
+      {!loading && pagination.totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "var(--sp-2)", marginTop: "var(--sp-5)" }}>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={pagination.page === 1}
+          >
+            &laquo; Prev
+          </button>
+          <span style={{ minWidth: 96, textAlign: "center", fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
+            disabled={pagination.page === pagination.totalPages}
+          >
+            Next &raquo;
+          </button>
         </div>
       )}
 

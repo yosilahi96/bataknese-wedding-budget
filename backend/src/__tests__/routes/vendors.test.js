@@ -6,6 +6,11 @@ const { authHeader } = require("../helpers/auth");
 const { TEST_USER, TEST_PROJECT, TEST_VENDOR, TEST_VENDOR_TYPE } = require("../helpers/fixtures");
 
 describe("Vendor Routes", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    prisma.vendor.count.mockResolvedValue(1);
+  });
+
   describe("GET /api/vendors", () => {
     it("should list all vendors", async () => {
       prisma.vendor.findMany.mockResolvedValue([TEST_VENDOR]);
@@ -16,6 +21,41 @@ describe("Vendor Routes", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.vendors).toHaveLength(1);
+      expect(res.body.pagination).toEqual({
+        page: 1,
+        limit: 12,
+        total: 1,
+        totalPages: 1,
+      });
+      expect(prisma.vendor.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 0,
+          take: 12,
+        })
+      );
+    });
+
+    it("should paginate vendors", async () => {
+      prisma.vendor.findMany.mockResolvedValue([TEST_VENDOR]);
+      prisma.vendor.count.mockResolvedValue(25);
+
+      const res = await request(app)
+        .get("/api/vendors?page=2&limit=10")
+        .set("Authorization", authHeader(TEST_USER.id));
+
+      expect(res.status).toBe(200);
+      expect(prisma.vendor.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 10,
+          take: 10,
+        })
+      );
+      expect(res.body.pagination).toEqual({
+        page: 2,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+      });
     });
 
     it("should filter vendors by type", async () => {
@@ -31,6 +71,9 @@ describe("Vendor Routes", () => {
           where: expect.objectContaining({ type: "CATERING" }),
         })
       );
+      expect(prisma.vendor.count).toHaveBeenCalledWith({
+        where: expect.objectContaining({ type: "CATERING" }),
+      });
     });
 
     it("should filter by batak specialist", async () => {

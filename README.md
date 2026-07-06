@@ -371,7 +371,7 @@ Interactive Swagger docs are available after starting the backend:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/vendors` | List vendors with optional filters |
+| GET | `/api/vendors` | List vendors with optional filters and pagination |
 | GET | `/api/vendors/:id` | Get vendor detail |
 | GET | `/api/vendors/recommend/:projectId` | Get recommendations for a project |
 | GET | `/api/vendor-types` | List vendor types |

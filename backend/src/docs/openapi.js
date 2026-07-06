@@ -43,6 +43,17 @@ const arrayWrap = (property, ref) => ({
   },
 });
 
+const paginatedArrayWrap = (property, ref) => ({
+  type: "object",
+  properties: {
+    [property]: {
+      type: "array",
+      items: ref,
+    },
+    pagination: { $ref: "#/components/schemas/Pagination" },
+  },
+});
+
 const messageSchema = {
   type: "object",
   properties: {
@@ -301,9 +312,11 @@ const openapi = {
           { name: "minCapacity", in: "query", schema: { type: "integer" } },
           { name: "isBatakSpecialist", in: "query", schema: { type: "boolean" } },
           { name: "sortBy", in: "query", schema: { type: "string", enum: ["price_asc", "price_desc", "name"] } },
+          { name: "page", in: "query", schema: { type: "integer", minimum: 1, default: 1 } },
+          { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 50, default: 12 } },
         ],
         responses: {
-          200: { description: "Vendors", content: { "application/json": { schema: arrayWrap("vendors", { $ref: "#/components/schemas/Vendor" }) } } },
+          200: { description: "Vendors", content: { "application/json": { schema: paginatedArrayWrap("vendors", { $ref: "#/components/schemas/Vendor" }) } } },
           401: errorResponses[401],
           500: errorResponses[500],
         },
@@ -814,6 +827,15 @@ const openapi = {
           isBatakSpecialist: { type: "boolean" },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      Pagination: {
+        type: "object",
+        properties: {
+          page: { type: "integer" },
+          limit: { type: "integer" },
+          total: { type: "integer" },
+          totalPages: { type: "integer" },
         },
       },
       VendorRequest: {
