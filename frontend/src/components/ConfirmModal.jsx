@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function ConfirmModal({ title, message, confirmLabel, confirmStyle, onConfirm, onClose }) {
   const [loading, setLoading] = useState(false);
@@ -14,7 +15,7 @@ export default function ConfirmModal({ title, message, confirmLabel, confirmStyl
 
   const isDanger = confirmStyle === "danger";
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
         <div style={{ textAlign: "center", padding: "var(--sp-2) 0" }}>
@@ -49,6 +50,7 @@ export default function ConfirmModal({ title, message, confirmLabel, confirmStyl
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

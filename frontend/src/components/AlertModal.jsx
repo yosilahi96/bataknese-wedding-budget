@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+
 export default function AlertModal({ title, message, type, onClose }) {
   const iconStyles = {
     error: { background: "#fef2f2", color: "var(--danger)" },
@@ -24,7 +26,7 @@ export default function AlertModal({ title, message, type, onClose }) {
     ),
   };
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
         <div style={{ textAlign: "center", padding: "var(--sp-2) 0" }}>
@@ -50,6 +52,7 @@ export default function AlertModal({ title, message, type, onClose }) {
           <button className="btn btn-primary" onClick={onClose}>OK</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

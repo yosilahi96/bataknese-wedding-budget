@@ -37,11 +37,11 @@ describe("AlertModal", () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
 
-    const { container } = render(
+    render(
       <AlertModal title="Title" message="Message" type="success" onClose={onClose} />
     );
 
-    const overlay = container.querySelector(".modal-overlay");
+    const overlay = document.body.querySelector(".modal-overlay");
     await user.click(overlay);
     expect(onClose).toHaveBeenCalled();
   });
