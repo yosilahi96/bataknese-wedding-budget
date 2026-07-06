@@ -47,6 +47,11 @@
   --warning: #cf4500;
   --danger: #b42318;
   --info: #3860be;
+  --chart-planned: #d1cdc7;
+  --chart-planned-strong: #a39c94;
+  --chart-actual: #cf4500;
+  --chart-actual-good: #246b4a;
+  --chart-grid: rgba(20, 20, 19, 0.08);
 
   /* Radius */
   --radius-sm: 6px;

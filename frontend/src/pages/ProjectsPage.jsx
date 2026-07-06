@@ -8,6 +8,15 @@ function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
 }
 
+const chartTooltipStyle = {
+  borderRadius: "20px",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-md)",
+  fontSize: "0.8125rem",
+  background: "rgba(252, 251, 250, 0.96)",
+  color: "var(--text)",
+};
+
 function BudgetComparisonChart({ projects }) {
   const { t } = useLanguage();
   const data = useMemo(() => {
@@ -123,18 +132,20 @@ function BudgetComparisonChart({ projects }) {
       <div style={{ padding: "var(--sp-2) 0" }}>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={chartData} margin={{ top: 8, right: 16, left: 16, bottom: 8 }} barCategoryGap="30%">
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--gray-200)" }} tickLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--border-light)" }} tickLine={false} />
             <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11, fill: "var(--text-tertiary)" }} axisLine={false} tickLine={false} />
             <Tooltip
               formatter={(v) => formatRupiah(v)}
-              contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
+              contentStyle={chartTooltipStyle}
+              itemStyle={{ color: "var(--text)" }}
+              labelStyle={{ color: "var(--text)", fontWeight: 600, marginBottom: 6 }}
             />
-            <Legend wrapperStyle={{ fontSize: "0.75rem", paddingTop: "8px" }} />
-            <Bar dataKey={t("planned")} fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
-            <Bar dataKey={t("spent")} radius={[6, 6, 0, 0]}>
+            <Legend wrapperStyle={{ fontSize: "0.75rem", paddingTop: "8px", color: "var(--text-secondary)" }} />
+            <Bar dataKey={t("planned")} fill="var(--chart-planned)" stroke="var(--chart-planned-strong)" strokeWidth={1} radius={[8, 8, 0, 0]} />
+            <Bar dataKey={t("spent")} radius={[8, 8, 0, 0]}>
               {chartData.map((entry, idx) => (
-                <Cell key={idx} fill={entry[t("spent")] > entry[t("planned")] ? "var(--danger)" : "var(--primary)"} />
+                <Cell key={idx} fill={entry[t("spent")] > entry[t("planned")] ? "var(--danger)" : "var(--chart-actual-good)"} />
               ))}
             </Bar>
           </BarChart>

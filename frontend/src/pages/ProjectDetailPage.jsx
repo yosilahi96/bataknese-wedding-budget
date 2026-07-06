@@ -15,6 +15,17 @@ function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
 }
 
+const chartTooltipStyle = {
+  borderRadius: "20px",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-md)",
+  fontSize: "0.8125rem",
+  background: "rgba(252, 251, 250, 0.96)",
+  color: "var(--text)",
+};
+
+const chartLegendStyle = { fontSize: "0.75rem", color: "var(--text-secondary)" };
+
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -276,16 +287,18 @@ export default function ProjectDetailPage() {
           <h3 className="section-title">{t("eventSpendingComparison")}</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={eventComparisonData} margin={{ top: 8, right: 16, left: 16, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--gray-200)" }} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--border-light)" }} tickLine={false} />
               <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11, fill: "var(--text-tertiary)" }} axisLine={false} tickLine={false} />
               <Tooltip
                 formatter={(v) => formatRupiah(v)}
-                contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
+                contentStyle={chartTooltipStyle}
+                itemStyle={{ color: "var(--text)" }}
+                labelStyle={{ color: "var(--text)", fontWeight: 600, marginBottom: 6 }}
               />
-              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 12, fontSize: "0.75rem" }} />
-              <Bar dataKey={t("planned")} fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
-              <Bar dataKey={t("actual")} fill="var(--primary)" radius={[6, 6, 0, 0]} />
+              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 12, ...chartLegendStyle }} />
+              <Bar dataKey={t("planned")} fill="var(--chart-planned)" stroke="var(--chart-planned-strong)" strokeWidth={1} radius={[8, 8, 0, 0]} />
+              <Bar dataKey={t("actual")} fill="var(--chart-actual)" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -345,16 +358,18 @@ export default function ProjectDetailPage() {
           <h3 className="section-title">{t("budgetVsActual", { name: activeEvent?.name })}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={activeCategoryChartData} margin={{ top: 8, right: 16, left: 16, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" vertical={false} />
-              <XAxis dataKey="name" angle={-35} textAnchor="end" interval={0} tick={{ fontSize: 11, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--gray-200)" }} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+              <XAxis dataKey="name" angle={-35} textAnchor="end" interval={0} tick={{ fontSize: 11, fill: "var(--text-secondary)" }} axisLine={{ stroke: "var(--border-light)" }} tickLine={false} />
               <YAxis tickFormatter={(v) => (v / 1000000).toFixed(0) + "M"} tick={{ fontSize: 11, fill: "var(--text-tertiary)" }} axisLine={false} tickLine={false} />
               <Tooltip
                 formatter={(v) => formatRupiah(v)}
-                contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", fontSize: "0.8125rem" }}
+                contentStyle={chartTooltipStyle}
+                itemStyle={{ color: "var(--text)" }}
+                labelStyle={{ color: "var(--text)", fontWeight: 600, marginBottom: 6 }}
               />
-              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 12, fontSize: "0.75rem" }} />
-              <Bar dataKey={t("planned")} fill="var(--gray-300)" radius={[6, 6, 0, 0]} />
-              <Bar dataKey={t("actual")} fill="var(--primary)" radius={[6, 6, 0, 0]} />
+              <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 12, ...chartLegendStyle }} />
+              <Bar dataKey={t("planned")} fill="var(--chart-planned)" stroke="var(--chart-planned-strong)" strokeWidth={1} radius={[8, 8, 0, 0]} />
+              <Bar dataKey={t("actual")} fill="var(--chart-actual)" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
