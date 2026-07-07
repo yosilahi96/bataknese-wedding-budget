@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+
 function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
 }
@@ -35,7 +37,7 @@ export default function VendorCompareModal({ vendors, guestCount, vendorTypes = 
     });
   }
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 700 }}>
         <h3 style={{ marginBottom: "1rem" }}>Vendor Comparison</h3>
@@ -70,6 +72,7 @@ export default function VendorCompareModal({ vendors, guestCount, vendorTypes = 
           <button className="btn btn-outline" onClick={onClose}>Close</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
