@@ -1035,6 +1035,22 @@ tr.vendor-selected:hover {
   gap: var(--sp-2);
 }
 
+.navbar-brand-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #000000;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-brand-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
 .navbar-links {
   display: flex;
   align-items: center;
@@ -1267,9 +1283,13 @@ tr.vendor-selected:hover {
     font-size: 1rem;
   }
 
-  .navbar-brand-inner svg {
-    width: 22px;
-    height: 22px;
+  .navbar-brand-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .navbar-brand-icon svg {
+    width: 18px;
+    height: 18px;
   }
 
   .navbar-links {
