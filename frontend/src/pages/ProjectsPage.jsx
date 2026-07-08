@@ -17,6 +17,15 @@ const chartTooltipStyle = {
   color: "var(--text)",
 };
 
+const PROJECTS_PER_PAGE = 5;
+
+function getPageNumbers(currentPage, totalPages) {
+  const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+  const end = Math.min(totalPages, start + 4);
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
+
 function BudgetComparisonChart({ projects }) {
   const { t } = useLanguage();
   const data = useMemo(() => {
@@ -188,8 +197,14 @@ function BudgetComparisonChart({ projects }) {
 export default function ProjectsPage() {
   const { t } = useLanguage();
   const [projects, setProjects] = useState([]);
+  const [projectPage, setProjectPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const totalPages = Math.max(1, Math.ceil(projects.length / PROJECTS_PER_PAGE));
+  const projectPageNumbers = getPageNumbers(projectPage, totalPages);
+  const paginatedProjects = projects.slice((projectPage - 1) * PROJECTS_PER_PAGE, projectPage * PROJECTS_PER_PAGE);
+  const firstProjectIndex = projects.length === 0 ? 0 : (projectPage - 1) * PROJECTS_PER_PAGE + 1;
+  const lastProjectIndex = Math.min(projectPage * PROJECTS_PER_PAGE, projects.length);
 
   useEffect(() => {
     api
@@ -198,6 +213,10 @@ export default function ProjectsPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    setProjectPage((currentPage) => Math.min(currentPage, totalPages));
+  }, [totalPages]);
 
   if (loading) return <div className="loading-state">{t("loadingProjects")}</div>;
 
@@ -230,8 +249,9 @@ export default function ProjectsPage() {
           <Link to="/projects/new" className="btn btn-primary btn-lg">{t("createFirstProject")}</Link>
         </div>
       ) : (
+        <>
         <div style={{ display: "grid", gap: "var(--sp-3)" }}>
-          {projects.map((p, index) => {
+          {paginatedProjects.map((p, index) => {
             const totalActual = (p.events || []).flatMap((e) => e.categories || []).reduce((s, c) => s + Number(c.actualCost), 0);
             const pct = Number(p.totalBudget) > 0 ? (totalActual / Number(p.totalBudget)) * 100 : 0;
 
@@ -284,6 +304,41 @@ export default function ProjectsPage() {
             );
           })}
         </div>
+        {totalPages > 1 && (
+          <div className="pagination-actions" aria-label={t("projectsPagination")}>
+            <span style={{ color: "var(--text-secondary)", fontSize: "0.8125rem", marginRight: "var(--sp-2)" }}>
+              {t("showingProjects", { start: firstProjectIndex, end: lastProjectIndex, total: projects.length })}
+            </span>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => setProjectPage((page) => Math.max(1, page - 1))}
+              disabled={projectPage === 1}
+            >
+              {t("previous")}
+            </button>
+            {projectPageNumbers.map((page) => (
+              <button
+                key={page}
+                type="button"
+                className={`btn btn-sm ${page === projectPage ? "btn-primary" : "btn-outline"}`}
+                onClick={() => setProjectPage(page)}
+                aria-current={page === projectPage ? "page" : undefined}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => setProjectPage((page) => Math.min(totalPages, page + 1))}
+              disabled={projectPage === totalPages}
+            >
+              {t("next")}
+            </button>
+          </div>
+        )}
+        </>
       )}
     </div>
   );
