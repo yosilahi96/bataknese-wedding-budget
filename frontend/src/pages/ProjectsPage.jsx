@@ -198,13 +198,43 @@ export default function ProjectsPage() {
   const { t } = useLanguage();
   const [projects, setProjects] = useState([]);
   const [projectPage, setProjectPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const totalPages = Math.max(1, Math.ceil(projects.length / PROJECTS_PER_PAGE));
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredProjects = useMemo(() => {
+    if (!normalizedSearchQuery) return projects;
+
+    return projects.filter((project) => {
+      const weddingDate = project.weddingDate ? new Date(project.weddingDate) : null;
+      const formattedDate = weddingDate
+        ? weddingDate.toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })
+        : "";
+      const eventType = project.eventType === "THREE_M" ? t("ceremony3M") : "Pesta Adat";
+      const status = project.isFinalized ? t("finalized") : t("inProgress");
+      const searchableText = [
+        project.groomName,
+        project.brideName,
+        `${project.groomName || ""} ${project.brideName || ""}`,
+        `${project.groomName || ""} & ${project.brideName || ""}`,
+        formattedDate,
+        eventType,
+        status,
+        formatRupiah(project.totalBudget || 0),
+        project.totalBudget,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(normalizedSearchQuery);
+    });
+  }, [projects, normalizedSearchQuery, t]);
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PROJECTS_PER_PAGE));
   const projectPageNumbers = getPageNumbers(projectPage, totalPages);
-  const paginatedProjects = projects.slice((projectPage - 1) * PROJECTS_PER_PAGE, projectPage * PROJECTS_PER_PAGE);
-  const firstProjectIndex = projects.length === 0 ? 0 : (projectPage - 1) * PROJECTS_PER_PAGE + 1;
-  const lastProjectIndex = Math.min(projectPage * PROJECTS_PER_PAGE, projects.length);
+  const paginatedProjects = filteredProjects.slice((projectPage - 1) * PROJECTS_PER_PAGE, projectPage * PROJECTS_PER_PAGE);
+  const firstProjectIndex = filteredProjects.length === 0 ? 0 : (projectPage - 1) * PROJECTS_PER_PAGE + 1;
+  const lastProjectIndex = Math.min(projectPage * PROJECTS_PER_PAGE, filteredProjects.length);
 
   useEffect(() => {
     api
@@ -217,6 +247,10 @@ export default function ProjectsPage() {
   useEffect(() => {
     setProjectPage((currentPage) => Math.min(currentPage, totalPages));
   }, [totalPages]);
+
+  useEffect(() => {
+    setProjectPage(1);
+  }, [normalizedSearchQuery]);
 
   if (loading) return <div className="loading-state">{t("loadingProjects")}</div>;
 
@@ -249,6 +283,50 @@ export default function ProjectsPage() {
           <Link to="/projects/new" className="btn btn-primary btn-lg">{t("createFirstProject")}</Link>
         </div>
       ) : (
+        <>
+        <div className="filter-bar">
+          <div style={{ position: "relative", flex: "1 1 280px", minWidth: 220 }}>
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }}
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="search"
+              placeholder={t("searchProjectsPlaceholder")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label={t("searchProjects")}
+              style={{ width: "100%", paddingLeft: 38 }}
+            />
+          </div>
+          {searchQuery && (
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSearchQuery("")}>
+              {t("clearSearch")}
+            </button>
+          )}
+          <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
+            {filteredProjects.length > PROJECTS_PER_PAGE
+              ? t("showingProjects", { start: firstProjectIndex, end: lastProjectIndex, total: filteredProjects.length })
+              : t("projectCount", { count: filteredProjects.length, plural: filteredProjects.length > 1 ? "s" : "" })}
+          </span>
+        </div>
+
+        {filteredProjects.length === 0 ? (
+          <div className="card empty-state">
+            <p>{t("noProjectsMatchSearch")}</p>
+          </div>
+        ) : (
         <>
         <div style={{ display: "grid", gap: "var(--sp-3)" }}>
           {paginatedProjects.map((p, index) => {
@@ -307,7 +385,7 @@ export default function ProjectsPage() {
         {totalPages > 1 && (
           <div className="pagination-actions" aria-label={t("projectsPagination")}>
             <span style={{ color: "var(--text-secondary)", fontSize: "0.8125rem", marginRight: "var(--sp-2)" }}>
-              {t("showingProjects", { start: firstProjectIndex, end: lastProjectIndex, total: projects.length })}
+              {t("showingProjects", { start: firstProjectIndex, end: lastProjectIndex, total: filteredProjects.length })}
             </span>
             <button
               type="button"
@@ -337,6 +415,8 @@ export default function ProjectsPage() {
               {t("next")}
             </button>
           </div>
+        )}
+        </>
         )}
         </>
       )}
